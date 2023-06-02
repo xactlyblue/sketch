@@ -1,0 +1,13 @@
+# Project place file
+
+/*.rbxl*
+/*.rbxm*
+*.stackdump
+highperformance.log
+
+/node_modules
+build
+
+/roblox.toml
+
+sourcemap.json

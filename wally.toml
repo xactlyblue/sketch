@@ -1,0 +1,9 @@
+[package]
+name = "xactlyblue/sketch"
+version = "1.0.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+authors = [ "xactlyblue" ]
+
+[dependencies]
+promise = "evaera/promise@4.0.0"

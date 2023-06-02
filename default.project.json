@@ -1,0 +1,13 @@
+{
+	"name": "sketch",
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Sketch": {
+				"$path": "src"
+			}
+		}
+	}
+}
