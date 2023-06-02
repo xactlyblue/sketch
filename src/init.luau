@@ -105,8 +105,37 @@ local function isComputable(value: unknown, expectedType: string): boolean
 		or typeof(value) == "function"
 end
 
+-- The status of the sketchbook
+export type SketchbookStatus = "Alive" | "Hidden" | "Dead"
+
+-- A sketchbook that holds sketches, which can then be rendered in the world at runtime
+export type Sketchbook = {
+	uuid: string,
+	status: SketchbookStatus
+}
+
+type Callback = () -> ()
+type Connection = RBXScriptConnection | Instance | Callback
+type Connections = { [number]: Connection }
+
+--[=[
+	Cleans up the given connection (somewhat like Quenty's Maid class)
+
+	@param Connection
+]=]
+local function cleanupConnection(connection: Connection): ()
+	if typeof(connection) == "RBXScriptConnection" then
+		connection:Disconnect()
+	elseif typeof(connection) == "Instance" then
+		connection:Destroy()
+	elseif typeof(connection) == "function" then
+		connection()
+	end
+end
+
 --[=[
 	An enum value to represent a sketchboard's status.
+
 	@interface Status
 	@tag enum
 	@within Sketchbook
@@ -120,12 +149,6 @@ end
 	
 	@class Sketchbook
 ]=]
-export type SketchbookStatus = "Alive" | "Hidden" | "Dead"
-export type Sketchbook = {
-	uuid: string,
-	status: SketchbookStatus
-}
-
 local Sketchbook
 do
 	Sketchbook = {}
@@ -136,8 +159,8 @@ do
 
 		self.uuid = generateUUID()
 		self.status = "Alive"
-		
-		self.maid = Maid.new()
+
+		self._connections = ({} :: Connections)
 
 		return self
 	end
@@ -148,6 +171,12 @@ do
 
 	function Sketchbook:cleanup()
 		self.status = "Dead"
+		
+		for _, connection: Connection in ipairs(self._connections) do
+			cleanupConnection(connection)
+		end
+
+		setmetatable(self, nil)
 	end
 end
 
@@ -172,7 +201,7 @@ end
 	Sketch.drawText({
 		position = Vector3.new(0, 5, 0),
 		text = "Hello, world!",
-		color = Color3.new(1, 1, 1),
+		color = Color3.new(1, 1, 1)
 	}, sketchboard)
 	```
 
