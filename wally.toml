@@ -8,8 +8,5 @@ realm = "shared"
 authors = [ "xactlyblue" ]
 exclude = [ "docs", "Packages", ".moonwave", "build", "pages" ]
 
-[dependencies]
-Maid = "flamenco687/maid@3.2.2"
-
 [dev-dependencies]
 TestEZ = "roblox/testez@0.4.1"

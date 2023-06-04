@@ -6,10 +6,7 @@
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
 			"Packages": {
-				"$path": "Packages"
-			},
-			"Example": {
-				"$path": "example"
+				"$path": "DevPackages"
 			},
 			"Sketch": {
 				"$path": "src"
