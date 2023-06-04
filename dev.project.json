@@ -1,0 +1,30 @@
+{
+	"name": "sketch",
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Packages": {
+				"$path": "Packages"
+			},
+			"Example": {
+				"$path": "example"
+			},
+			"Sketch": {
+				"$path": "src"
+			}
+		},
+
+		"StarterPlayer": {
+			"$className": "StarterPlayer",
+
+			"StarterPlayerScripts": {
+				"$className": "StarterPlayerScripts",
+				"Example": {
+					"$path": "example"
+				}
+			}
+		}
+	}
+}
