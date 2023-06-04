@@ -11,7 +11,6 @@ local TextService = game:GetService("TextService")
 local HttpService = game:GetService("HttpService")
 --#endregion
 
-local globalIdCount: number = 0
 local sketchbookRegistry: { Sketchbook } = {}
 
 --[=[
@@ -54,6 +53,8 @@ local function isComputable(value: unknown, expectedType: string): boolean
 		or typeof(value) == "function"
 end
 
+--#region Type Definitions
+
 -- The status of the sketchbook
 export type SketchbookStatus = "Alive" | "Hidden" | "Dead"
 
@@ -61,7 +62,11 @@ export type SketchbookStatus = "Alive" | "Hidden" | "Dead"
 export type Sketchbook = {
 	uuid: string,
 	status: SketchbookStatus,
+
 	registerDrawing: (Sketchbook, Drawing) -> (),
+	removeDrawing: (Sketchbook, Drawing) -> (),
+
+	getDrawings: (Sketchbook) -> Array<Drawing>,
 }
 
 -- A drawing that can be rendered in the world at runtime
@@ -115,12 +120,21 @@ export type Drawing = {
 	type: DrawingType,
 	color: Color3,
 	transparency: number?,
-	parameters: DrawingParameters
+	parameters: DrawingParameters,
+
+	getSketchbook: (Drawing) -> Sketchbook,
+	getRenderer: (Drawing) -> Renderer,
+}
+export type Renderer = {
+	new: (DrawingType) -> Renderer,
+	render: (Drawing) -> Instance
 }
 
 type Callback = () -> ()
 type Connection = RBXScriptConnection | Instance | Callback
 type Connections = { [number]: Connection }
+
+--#endregion
 
 --[=[
 	Cleans up the given connection (somewhat like Quenty's Maid class)
@@ -150,6 +164,85 @@ end
 local Status: Enum<SketchbookStatus> = createEnum<SketchbookStatus>({ "Alive", "Hidden", "Dead" })
 
 --[=[
+	A renderer is a class that can be used to render a drawing in the world.
+
+	@class Renderer
+]=]
+local Renderer
+do
+	Renderer = {}
+	Renderer.__index = Renderer
+
+	function Renderer.new(drawingType: DrawingType): Renderer
+		local self = setmetatable({}, Renderer)
+
+		self.drawingType = drawingType
+
+		return self
+	end
+
+	function Renderer:render(drawing: Drawing): Instance
+		error("Abstract method not implemented")
+	end
+
+	function Renderer:cleanup()
+		warn("Abstract method not implemented")
+		setmetatable(self, nil)
+	end
+end
+
+--[=[
+	A renderer that uses the built-in Drawing API to render a text drawing in the world.
+
+	@extends Renderer
+	@class TextRenderer
+]=]
+local TextRenderer
+do
+	TextRenderer = {}
+	TextRenderer.__index = TextRenderer
+
+	setmetatable(TextRenderer, Renderer)
+
+	function TextRenderer.new(): Renderer
+		return setmetatable(Renderer.new("Text"), TextRenderer)
+	end
+
+	function TextRenderer:render(drawing: Drawing): Instance
+		assert(drawing.type == "Text", "TextRenderer can only render Text drawings")
+
+		local params: any = drawing.parameters.textParams
+
+		local text: string = params.text
+		local color: Color3 = params.color
+		local font: Enum.Font = params.font
+		local size: number = params.size
+		
+		local parent: Instance = workspace.CurrentCamera
+		local billboardGui: BillboardGui = Utils.generateBillboardForText(text, parent)
+
+		local textLabel: TextLabel = Instance.new("TextLabel")
+		textLabel.Text = text
+		textLabel.TextColor3 = color
+		textLabel.Font = font
+		textLabel.TextSize = size
+
+		textLabel.Size = UDim2.new(1, 0, 1, 0)
+		textLabel.BackgroundTransparency = 1
+		textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+		textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+		textLabel.Parent = billboardGui
+
+		return textLabel
+	end
+	
+	function TextRenderer:cleanup()
+		setmetatable(self, nil)
+	end
+
+end
+
+--[=[
 	A drawing is essentially a container of information and types that can be used to render a "Drawing" in the world at runtime.
 
 	@class Drawing
@@ -160,7 +253,7 @@ do
 	Drawing = {}
 	Drawing.__index = Drawing
 
-
+	--#region Generate Drawing Parameters
 	--[=[
 		Generates the default drawing parameters for a line.
 	]=]
@@ -237,6 +330,20 @@ do
 			}
 		}
 	end
+	--#endregion
+
+	local function createRenderer(drawing: Drawing): Renderer
+		if drawing.type == "Line" then
+			return LineRenderer.new(drawing, drawing:getSketchbook())
+		elseif drawing.type == "Circle" then
+			return CircleRenderer.new(drawing)
+		elseif drawing.type == "Rectangle" then
+		elseif drawing.type == "Triangle" then
+		elseif drawing.type == "Text" then
+		end
+		
+		error(("Drawing type %s is not supported."):format(drawing.type))
+	end
 
 	--[=[
 		Creates a new drawing.
@@ -255,6 +362,8 @@ do
 		self.color = Color3.new(1, 1, 1)
 		self.transparency = 0
 		self.parameters = self:_generateParameters() 
+
+		self.renderer = createRenderer(self)
 
 		self._connections = {} :: Connections
 		self._renderedHolder = nil :: Instance?
@@ -280,14 +389,38 @@ do
 		return parameters
 	end
 
+	function Drawing:getSketchbook(): Sketchbook
+		return self.sketchbook
+	end
+
+	--#region Drawing Parameter Getters/Setters
 	function Drawing:setLineThickness(thickness: number): Drawing
-		assert(self.type == "Line", "Cannot set line thickness of non-line drawing.")
+		assert(self.type == "Line", "Cannot set line thickness of non-line drawing")
 
 		self.parameters.lineParams.thickness = thickness
 
 		return self 
 	end
 
+	function Drawing:getLineThickness(): number
+		assert(self.type == "Line", "Cannot get line thickness of non-line drawing")
+
+		return self.parameters.lineParams.thickness
+	end
+	--#endregion
+
+	function Drawing:cleanup()
+		self:getSketchbook():removeDrawing(self)
+		self:getRenderer():cleanup()
+
+		for _, connection in pairs(self._connections) do
+			connection:disconnect()
+		end
+
+		self._connections = nil
+
+		setmetatable(self, nil)
+	end
 end
 
 --[=[
@@ -310,13 +443,29 @@ do
 		self._connections = ({} :: Connections)
 		self._drawings = ({} :: Array<Drawing>)
 
+		table.insert(sketchbookRegistry, self)
+
 		return self
 	end
 
-	function Sketchbook:registerDrawing(drawing: Drawing): Connection
+	-- TODO!
+	function Sketchbook:registerDrawing(drawing: Drawing): Drawing 
 		assert(drawing, "Cannot register nil drawing.")
 
-		return function() end
+		local alreadyRegistered: boolean = false
+
+		for _, entry: Drawing in ipairs(self._drawings) do
+			if entry.uuid == drawing.uuid then
+				alreadyRegistered = true
+				break
+			end
+		end
+
+		assert(not alreadyRegistered, "Cannot register drawing that is already registered.")
+
+		table.insert(self._drawings, drawing)
+
+		return drawing
 	end
 
 	function Sketchbook:setHidden(hidden: boolean)
@@ -373,16 +522,19 @@ end
 	@param Color3 color The color to draw the text in.
 	@return Drawing 
 ]=]
-function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Vector3, color: Color3): Drawing
+function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Vector3?, color: Color3?): Drawing
 	assert(isComputable(text, "string"), "Invalid argument #2, expected Computable<string>")
-	
-	local holder: Part = Utils.generateHolderPart()
-
-	globalIdCount += 1
 
 	local drawing = Drawing.new(sketchbook, "Text")
 
 	sketchbook:registerDrawing(drawing)
+
+	drawing:setText(text)
+	drawing:setColor(color or Color3.new(1, 1, 1))
+
+	if position ~= nil then
+		drawing:setTextPosition(position)
+	end
 
 	return drawing 
 end
@@ -392,8 +544,8 @@ end
 	be called each frame instead of manually after each change to the sketchbook or its drawings.
 	
 	```lua
-	local sketchbook: Sketchbook = Sketch.createSketchbook()
-	local drawing: Drawing = Sketch.drawText(sketchbook, function()
+	local sketchbook = Sketch.createSketchbook()
+	local drawing = Sketch.drawText(sketchbook, function()
 		return "Hello, world!"
 	end, Vector3.new(0, 5, 0), Color3.new(1, 1, 1))
 
@@ -404,7 +556,9 @@ end
 	@return nil
 ]=]
 function Sketch.render(sketchbook: Sketchbook): ()
-
+	for _, drawing: Drawing in pairs(sketchbook:getDrawings()) do
+		local renderer: Renderer = drawing:getRenderer()
+	end
 end
 
 return Sketch

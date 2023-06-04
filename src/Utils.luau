@@ -24,6 +24,24 @@ local function generateBillboardForText(text: string, parent: Instance): Billboa
 	return billboard
 end
 
+local function generateTextLabel(text: string, parent: Instance): TextLabel
+	local textLabel: TextLabel = Instance.new("TextLabel")
+	textLabel.Name = "SketchedText"
+	textLabel.Text = text
+	textLabel.TextColor3 = Constants.SKETCHED_TEXT_COLOR
+	textLabel.TextSize = Constants.SKETCHED_TEXT_SIZE
+	textLabel.Font = Constants.SKETCHED_TEXT_FONT
+	textLabel.BackgroundTransparency = 1
+	textLabel.Size = UDim2.new(1, 0, 1, 0)
+	textLabel.TextScaled = true
+	textLabel.TextWrapped = true
+	textLabel.TextXAlignment = Enum.TextXAlignment.Center
+	textLabel.TextYAlignment = Enum.TextYAlignment.Center
+	textLabel.Parent = parent
+
+	return textLabel
+end
+
 local function generateHolderPart(): Part
 	local holder: Part = Instance.new("Part")
 	holder.Name = "SketchedText"
@@ -38,5 +56,6 @@ end
 
 return {
 	generateBillboardForText = generateBillboardForText,
+	generateTextLabel = generateTextLabel,
 	generateHolderPart = generateHolderPart,
 }
