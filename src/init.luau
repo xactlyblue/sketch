@@ -60,7 +60,8 @@ export type SketchbookStatus = "Alive" | "Hidden" | "Dead"
 -- A sketchbook that holds sketches, which can then be rendered in the world at runtime
 export type Sketchbook = {
 	uuid: string,
-	status: SketchbookStatus
+	status: SketchbookStatus,
+	registerDrawing: (Sketchbook, Drawing) -> (),
 }
 
 -- A drawing that can be rendered in the world at runtime
@@ -384,6 +385,26 @@ function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, posit
 	sketchbook:registerDrawing(drawing)
 
 	return drawing 
+end
+
+--[=[
+	Renders a sketchbook to the screen. Although not necessary, it is recommended that this function
+	be called each frame instead of manually after each change to the sketchbook or its drawings.
+	
+	```lua
+	local sketchbook: Sketchbook = Sketch.createSketchbook()
+	local drawing: Drawing = Sketch.drawText(sketchbook, function()
+		return "Hello, world!"
+	end, Vector3.new(0, 5, 0), Color3.new(1, 1, 1))
+
+	Sketch.render(sketchbook)
+	```
+
+	@param Sketchbook sketchbook The sketchbook to render.
+	@return nil
+]=]
+function Sketch.render(sketchbook: Sketchbook): ()
+
 end
 
 return Sketch
