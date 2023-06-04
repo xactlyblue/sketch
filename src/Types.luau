@@ -63,7 +63,7 @@ export type DrawingParameters = {
 	textParams: ({
 		text: Computable<string>,
 		size: Computable<number>,
-		font: Font?,
+		font: Computable<Font?>,
 		position: Computable<Vector3>,
 	})?
 }
