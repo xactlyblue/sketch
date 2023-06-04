@@ -1,63 +1,18 @@
-local Constants = require(script:WaitForChild("Constants"))
+local library = script.Parent :: Instance
+local Constants = require(library:WaitForChild("Constants"))
+local Utils	= require(library:WaitForChild("Utils"))
 
 type Array<T> = {[number]: T}
 
-export type SketchedText = {
-	id: number,
-	options: SketchedTextOptions,
-	holder: Instance?,
-	billboard: BillboardGui?,
-}
-
-export type SketchedTextOptions = {
-	position: Vector3,
-	text: string,
-	color: Color3?,
-}
-
-local Sketch = {}
 
 --#region Services
-local Debris = game:GetService("Debris")
 local RunService = game:GetService("RunService")
-local CollectionService = game:GetService("CollectionService")
 local TextService = game:GetService("TextService")
 local HttpService = game:GetService("HttpService")
 --#endregion
 
 local globalIdCount: number = 0
-local sketchedTextRegistry: Array<SketchedText> = {}
-
-local function generateBillboardForText(text: string, parent: Instance): BillboardGui
-	local calculatedSize: Vector2 = TextService:GetTextSize(text, 
-		Constants.SKETCHED_TEXT_SIZE,
-		Constants.SKETCHED_TEXT_FONT, 
-		Constants.SKETCHED_TEXT_CONTAINER_SIZE
-	)
-
-	local billboard: BillboardGui = Instance.new("BillboardGui")
-	billboard.Name = "SketchedText"
-	billboard.AlwaysOnTop = false
-	billboard.LightInfluence = 0
-	billboard.Size = UDim2.new(0, calculatedSize.X, 0, calculatedSize.Y)
-	billboard.Enabled = true
-	
-	Debris:AddItem(billboard)
-
-	return billboard
-end
-
-local function generateHolderPart(): Part
-	local holder: Part = Instance.new("Part")
-	holder.Name = "SketchedText"
-	holder.Anchored = true
-	holder.CanCollide = false
-	holder.Transparency = 1
-	
-	CollectionService:AddTag(holder, Constants.SKETCHED_TAG)
-
-	return holder
-end
+local sketchbookRegistry: { Sketchbook } = {}
 
 --[=[
 	Generates a unique identifier.
@@ -71,31 +26,25 @@ end
 --[=[
 	Creates a read-only table that acts as an enum.
 ]=]
-local function createEnum(values: { [string]: number })
-	local enum: { [string]: unknown } = {}
+local function createEnum<T>(values: { T }): Enum<T> 
+	local enum: Enum<T> = {}
 
-	for key: string, value: number in pairs(values) do
-
+	for _, value: T in ipairs(values) do
+		enum[tostring(value)] = value
 	end
 
-	return setmetatable(enum, {
-		__index = function(self, key)
-
-			error(string.format("%s is not a valid member of this enum", tostring(key)), 2)
-		
-			return rawget(self, key)
-		end,
-
-		__newindex = function(self, key, value)
-			error(string.format("Attempt to modify read-only table"), 2)
-		end,
-	}) 
+	return table.freeze(enum)
 end
 
 --[=[
 	A computable value that runs the given function (if provided) to get the result.
 ]=]
 type Computable<T> = T | (() -> T)
+
+--[=[
+	An enum value that can be used to specify specific enum values.
+]=]
+type Enum<T> = { [string]: T }
 
 --[=[
 	Get whether the given value is a computable value.
@@ -112,6 +61,60 @@ export type SketchbookStatus = "Alive" | "Hidden" | "Dead"
 export type Sketchbook = {
 	uuid: string,
 	status: SketchbookStatus
+}
+
+-- A drawing that can be rendered in the world at runtime
+export type DrawingType = "Line" | "Circle" | "Rectangle" | "Triangle" | "Text"
+export type DrawingParameters = {
+	lineParams: ({ 
+		thickness: number,
+		points: { 
+			first: Vector3,
+			second: Vector3
+		}
+	})?,
+
+	circleParams: ({
+		radius: number,
+		filled: boolean,
+		position: Vector3,
+	})?,
+
+	rectangleParams: ({
+		size: { 
+			width: number,
+			height: number
+		},
+
+		filled: boolean,
+		position: Vector3,
+	})?,
+
+	triangleParams: ({
+		points: { 
+			first: Vector3,
+			second: Vector3,
+			third: Vector3
+		},
+
+		filled: boolean,
+		position: Vector3,
+	})?,
+
+	textParams: ({
+		text: Computable<string>,
+		size: number,
+		font: Font?,
+		position: Vector3,
+	})?
+}
+export type Drawing = {
+	uuid: string,
+	sketchbook: Sketchbook,
+	type: DrawingType,
+	color: Color3,
+	transparency: number?,
+	parameters: DrawingParameters
 }
 
 type Callback = () -> ()
@@ -134,18 +137,161 @@ local function cleanupConnection(connection: Connection): ()
 end
 
 --[=[
-	An enum value to represent a sketchboard's status.
+	An enum value to represent a sketchbook's status.
 
 	@interface Status
 	@tag enum
 	@within Sketchbook
-	.Alive "Alive" -- The sketchboard is alive and visible in the world.
-	.Hidden "Hidden" -- The sketchboard is hidden and cannot be seen in the world.
-	.Dead "Dead" -- The sketchboard is dead and can no longer be used.
+	.Alive "Alive" -- The sketchbook is alive and visible in the world.
+	.Hidden "Hidden" -- The sketchbook is hidden and cannot be seen in the world.
+	.Dead "Dead" -- The sketchbook is dead and can no longer be used.
 ]=]
+local Status: Enum<SketchbookStatus> = createEnum<SketchbookStatus>({ "Alive", "Hidden", "Dead" })
+
 --[=[
-	A sketchboard is essentially a container that can hold sketched objects (which will then be rendered to the world at runtime).
-	Each sketchboard has a unique ID that can be used to identify it, and can be be modified when necessary.
+	A drawing is essentially a container of information and types that can be used to render a "Drawing" in the world at runtime.
+
+	@class Drawing
+	@tag type
+]=]
+local Drawing
+do
+	Drawing = {}
+	Drawing.__index = Drawing
+
+
+	--[=[
+		Generates the default drawing parameters for a line.
+	]=]
+	local function generateLineParameters(): DrawingParameters
+		return {
+			lineParams = {
+				thickness = 1,
+				points = {
+					first = Vector3.new(0, 0, 0),
+					second = Vector3.new(0, 0, 0)
+				}
+			}
+		}
+	end
+
+	--[=[
+		Generates the default drawing parameters for a circle.
+	]=]
+	local function generateCircleParameters(): DrawingParameters
+		return {
+			circleParams = {
+				radius = 1,
+				filled = false,
+				position = Vector3.new(0, 0, 0)
+			}
+		}
+	end
+
+	--[=[
+		Generates the default drawing parameters for a rectangle.
+	]=]
+	local function generateRectangleParameters(): DrawingParameters
+		return {
+			rectangleParams = {
+				size = {
+					width = 1,
+					height = 1
+				},
+
+				filled = false,
+				position = Vector3.new(0, 0, 0)
+			}
+		}
+	end
+
+	--[=[
+		Generates the default drawing parameters for a triangle.
+	]=]
+	local function generateTriangleParameters(): DrawingParameters
+		return {
+			triangleParams = {
+				points = {
+					first = Vector3.new(0, 0, 0),
+					second = Vector3.new(0, 0, 0),
+					third = Vector3.new(0, 0, 0)
+				},
+
+				filled = false,
+				position = Vector3.new(0, 0, 0)
+			}
+		}
+	end
+
+	--[=[
+		Generates the default drawing parameters for a text object.
+	]=]
+	local function generateTextParameters(): DrawingParameters
+		return {
+			textParams = {
+				text = "Undefined", 
+				position = Vector3.new(0, 0, 0),
+				size = 1,
+				font = Font.fromEnum(Enum.Font.SourceSans),
+			}
+		}
+	end
+
+	--[=[
+		Creates a new drawing.
+
+		@param string name The name of the drawing.
+		@param string type The type of the drawing.
+		@returns Drawing
+	]=]
+	function Drawing.new(sketchbook: Sketchbook, type: DrawingType): Drawing
+		local self = setmetatable({}, Drawing)
+
+		self.uuid = generateUUID()
+		self.sketchbook = sketchbook
+
+		self.type = type
+		self.color = Color3.new(1, 1, 1)
+		self.transparency = 0
+		self.parameters = self:_generateParameters() 
+
+		self._connections = {} :: Connections
+		self._renderedHolder = nil :: Instance?
+
+		return self
+	end
+
+	function Drawing:_generateParameters(): DrawingParameters
+		local parameters: DrawingParameters
+
+		if self.type == "Line" then
+			parameters = generateLineParameters()
+		elseif self.type == "Circle" then
+			parameters = generateCircleParameters()
+		elseif self.type == "Rectangle" then
+			parameters = generateRectangleParameters()
+		elseif self.type == "Triangle" then
+			parameters = generateTriangleParameters()
+		elseif self.type == "Text" then
+			parameters = generateTextParameters()
+		end
+
+		return parameters
+	end
+
+	function Drawing:setLineThickness(thickness: number): Drawing
+		assert(self.type == "Line", "Cannot set line thickness of non-line drawing.")
+
+		self.parameters.lineParams.thickness = thickness
+
+		return self 
+	end
+
+end
+
+--[=[
+	A sketchbook is essentially a container that can hold sketched objects (which will then be rendered to the world at runtime).
+	Each sketchbook has a unique ID that can be used to identify it, and can be be modified when necessary.
 	
 	@class Sketchbook
 ]=]
@@ -161,8 +307,15 @@ do
 		self.status = "Alive"
 
 		self._connections = ({} :: Connections)
+		self._drawings = ({} :: Array<Drawing>)
 
 		return self
+	end
+
+	function Sketchbook:registerDrawing(drawing: Drawing): Connection
+		assert(drawing, "Cannot register nil drawing.")
+
+		return function() end
 	end
 
 	function Sketchbook:setHidden(hidden: boolean)
@@ -181,10 +334,18 @@ do
 end
 
 --[=[
-	Creates a sketchboard that can then contain other sketchable objects.
+	A sketch is the API that is used to create and modify drawings. It is essentially a wrapper around a sketchbook that allows for
+	creation of drawings and other sketchable objects.
+
+	@class Sketch
+]=]
+local Sketch = {}
+
+--[=[
+	Creates a sketchbook that can then contain other sketchable objects.
 	
 	```lua
-	local sketchboard: Sketch.Sketchbook = Sketch.createSketchbook()
+	local sketchbook: Sketch.Sketchbook = Sketch.createSketchbook()
 	```
 
 	@returns Sketchbook
@@ -202,31 +363,27 @@ end
 		position = Vector3.new(0, 5, 0),
 		text = "Hello, world!",
 		color = Color3.new(1, 1, 1)
-	}, sketchboard)
+	}, sketchbook)
 	```
 
-	@param options SketchedTextOptions
-	@return SketchedText
+	@param Sketchbook sketchbook The sketchbook to draw the text on.
+	@param string | Computable text The text to draw.
+	@param Vector3 position The position to draw the text at.
+	@param Color3 color The color to draw the text in.
+	@return Drawing 
 ]=]
-function Sketch.drawText(options: SketchedTextOptions): SketchedText
-	local holder: Part = generateHolderPart()
+function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Vector3, color: Color3): Drawing
+	assert(isComputable(text, "string"), "Invalid argument #2, expected Computable<string>")
+	
+	local holder: Part = Utils.generateHolderPart()
 
 	globalIdCount += 1
 
-	local sketch: SketchedText = {
-		id = globalIdCount,
-		options = options,
-		holder = holder,
-		billboard = generateBillboardForText(options.text, holder),
-	}
+	local drawing = Drawing.new(sketchbook, "Text")
 
-	table.insert(sketchedTextRegistry, sketch)
+	sketchbook:registerDrawing(drawing)
 
-	return sketch
-end
-
-function Sketch.drawComputedText(options: SketchedTextOptions): SketchedText?
-	return nil
+	return drawing 
 end
 
 return Sketch
