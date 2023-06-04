@@ -20,9 +20,6 @@ export type DrawingParameters = Types.DrawingParameters
 export type Renderer = Types.Renderer
 --#endregion
 
---[=[
-	Retrieve the value of a computable value.
-]=]
 local function retrieveComputableValue<T>(computable: Computable<T>): T
 	if typeof(computable) == "function" then
 		return computable()
@@ -32,15 +29,25 @@ local function retrieveComputableValue<T>(computable: Computable<T>): T
 end
 
 --[=[
-	A renderer is a class that can be used to render a drawing in the world.
+	An internal renderer class responsible for creating visual representations of drawings in the World.
+	There's no need to create instances of, or interact with, this class directly.
 
 	@class Renderer
+	@tag component
 ]=]
 local Renderer
 do
 	Renderer = {}
 	Renderer.__index = Renderer
 
+	--[=[
+		Create a new renderer instance for the given drawing.
+
+		@within Renderer 
+		@param drawing Drawing -- The drawing to render
+		@param drawingType DrawingType -- The type of drawing to render
+		@return Renderer -- The new renderer
+	]=]
 	function Renderer.new(drawing: Drawing, drawingType: DrawingType): Renderer
 		local self = setmetatable({}, Renderer)
 
@@ -52,30 +59,52 @@ do
 		return self 
 	end
 
+	--[=[
+		Render the drawing in the world.
+
+		@within Renderer 
+		@error "Abstract method not implemented" -- This method must be implemented by subclasses
+		@param drawing Drawing -- The drawing to render
+		@return Instance -- The rendered drawing
+	]=]
 	function Renderer:render(drawing: Drawing): Instance
 		error("Abstract method not implemented")
 	end
 
+	--[=[
+		Set the cached instance for the renderer.
+
+		@within Renderer 
+		@error "Abstract method not implemented" -- This method must be implemented by subclasses
+		@param instance Instance? -- The instance to cache
+	]=]
 	function Renderer:setCachedInstance<T>(instance: T?)
 		error("Abstract method not implemented")
 	end
 
+	--[=[
+		Get the cached instance for the renderer.
+
+		@within Renderer 
+		@error "Abstract method not implemented" -- This method must be implemented by subclasses
+		@return Instance? -- The cached instance
+	]=]
 	function Renderer:getCachedInstance<T>(): T?
 		error("Abstract method not implemented")
 	end
 
+	--[=[
+		Clean up the renderer.
+
+		@within Renderer 
+	]=]
 	function Renderer:cleanup()
 		warn("Abstract method not implemented")
 		setmetatable(self, nil)
 	end
 end
 
---[=[
-	A renderer that uses the built-in Drawing API to render a text drawing in the world.
-
-	@extends Renderer
-	@class TextRenderer
-]=]
+--#region Implementations
 local TextRenderer
 do
 	TextRenderer = {}
@@ -129,8 +158,8 @@ do
 	function TextRenderer:cleanup()
 		setmetatable(self, nil)
 	end
-
 end
+--#endregion
 
 return {
 	Renderer = Renderer,

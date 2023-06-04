@@ -1,17 +1,26 @@
---[=[
-	A computable value that runs the given function (if provided) to get the result.
-]=]
+-- @type Computable<T> T | (() -> T)
 export type Computable<T> = T | (() -> T)
 
---[=[
-	An enum value that can be used to specify specific enum values.
-]=]
+-- @type Enum<T> { [string]: T }
 export type Enum<T> = { [string]: T }
 
--- The status of the sketchbook
+--[=[
+	The current status of the sketchbook, with 
+	* **Alive** - default state, indicates sketchbook is currently rendered on the screen
+	* **Hidden** - sketchbook is not rendered on the screen, but still exists in memory
+	* **Dead** - sketchbook is not rendered on the screen, and has been removed from memory
+
+	@type SketchbookStatus "Alive" | "Hidden" | "Dead"
+	@within Sketch
+]=]
 export type SketchbookStatus = "Alive" | "Hidden" | "Dead"
 
--- A sketchbook that holds sketches, which can then be rendered in the world at runtime
+--[=[
+	@type DrawingType "Line" | "Circle" | "Rectangle" | "Triangle" | "Text" 
+	@within Sketch
+]=]
+export type DrawingType = "Line" | "Circle" | "Rectangle" | "Triangle" | "Text"
+
 export type Sketchbook = {
 	uuid: string,
 	status: SketchbookStatus,
@@ -22,8 +31,6 @@ export type Sketchbook = {
 	getDrawings: (Sketchbook) -> Array<Drawing>,
 }
 
--- A drawing that can be rendered in the world at runtime
-export type DrawingType = "Line" | "Circle" | "Rectangle" | "Triangle" | "Text"
 export type DrawingParameters = {
 	lineParams: ({ 
 		thickness: number,
@@ -85,9 +92,13 @@ export type Renderer = {
 	render: (Drawing) -> Instance,
 }
 
+-- @type Array<T> { [number]: T }
 export type Array<T> = {[number]: T}
+-- @type Callback () -> ()
 export type Callback = () -> ()
+-- @type Connection RBXScriptConnection | Instance | Callback 
 export type Connection = RBXScriptConnection | Instance | Callback
-export type Connections = { [number]: Connection }
+-- @type Connections Array<Connection>
+export type Connections = Array<Connection>
 
 return {}

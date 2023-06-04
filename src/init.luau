@@ -29,18 +29,10 @@ export type Renderer = Types.Renderer
 
 local sketchbookRegistry: { Sketchbook } = {}
 
---[=[
-	Generates a unique identifier.
-
-	@return string
-]=]
 local function generateUUID(): string
 	return (HttpService:GenerateGUID(false):gsub("-", ""):lower())
 end
 
---[=[
-	Creates a read-only table that acts as an enum.
-]=]
 local function createEnum<T>(values: Array<T>): Enum<T> 
 	local enum: Enum<T> = {}
 
@@ -51,20 +43,11 @@ local function createEnum<T>(values: Array<T>): Enum<T>
 	return table.freeze(enum)
 end
 
---[=[
-	Get whether the given value is a computable value.
-]=]
 local function isComputable(value: unknown, expectedType: string): boolean
 	return typeof(value) == expectedType 
 		or typeof(value) == "function"
 end
 
-
---[=[
-	Cleans up the given connection (somewhat like Quenty's Maid class)
-
-	@param Connection
-]=]
 local function cleanupConnection(connection: Connection): ()
 	if typeof(connection) == "RBXScriptConnection" then
 		connection:Disconnect()
@@ -76,10 +59,17 @@ local function cleanupConnection(connection: Connection): ()
 end
 
 --[=[
-	A drawing is essentially a container of information and types that can be used to render a "Drawing" in the world at runtime.
+	A drawing is, as you might expect, a representation of data that will be drawn to the screen in each call of the render function.
+	Each drawing is attached to a sketchbook, which is a collection of drawings that are all rendered together; it also acts as a container for
+	different types of drawings, helping to keep your code nice and organized.
+	
+	```lua
+	local sketchbook = Sketch.createSketchbook() -- Create a new sketchbook to hold our drawings
+	local drawing = Sketch.drawText(sketchbook, "Hello, world!") -- Create a new drawing to draw some text
+	```
 
 	@class Drawing
-	@tag type
+	@tag component 
 ]=]
 local Drawing
 do
@@ -87,11 +77,6 @@ do
 	Drawing.__index = Drawing
 
 	--#region Generate Drawing Parameters
-	--[=[
-		Generates the default drawing parameters for a line.
-
-		@return DrawingParameters
-	]=]
 	local function generateLineParameters(): DrawingParameters
 		return {
 			lineParams = {
@@ -104,11 +89,6 @@ do
 		}
 	end
 
-	--[=[
-		Generates the default drawing parameters for a circle.
-
-		@return DrawingParameters
-	]=]
 	local function generateCircleParameters(): DrawingParameters
 		return {
 			circleParams = {
@@ -119,11 +99,6 @@ do
 		}
 	end
 
-	--[=[
-		Generates the default drawing parameters for a rectangle.
-
-		@return DrawingParameters
-	]=]
 	local function generateRectangleParameters(): DrawingParameters
 		return {
 			rectangleParams = {
@@ -138,11 +113,6 @@ do
 		}
 	end
 
-	--[=[
-		Generates the default drawing parameters for a triangle.
-
-		@return DrawingParameters
-	]=]
 	local function generateTriangleParameters(): DrawingParameters
 		return {
 			triangleParams = {
@@ -158,11 +128,6 @@ do
 		}
 	end
 
-	--[=[
-		Generates the default drawing parameters for a text object.
-
-		@return DrawingParameters
-	]=]
 	local function generateTextParameters(): DrawingParameters
 		return {
 			textParams = {
@@ -175,12 +140,6 @@ do
 	end
 	--#endregion
 
-	--[=[
-		Depending on the drawing type, generates the default drawing parameters.
-
-		@param drawing Drawing
-		@return DrawingParameters
-	]=]
 	local function generateParameters(drawing: Drawing): DrawingParameters
 		local parameters: DrawingParameters
 
@@ -199,12 +158,6 @@ do
 		return parameters
 	end
 
-	--[=[
-		Generates a renderer for a drawing.
-
-		@param drawing Drawing
-		@return Renderer
-	]=]
 	local function createRenderer(drawing: Drawing): Renderer
 		if drawing.type == "Line" then
 			return Renderers.LineRenderer.new(drawing, drawing:getSketchbook())
@@ -218,15 +171,16 @@ do
 			return Renderers.TextRenderer.new(drawing)
 		end
 		
-		error(("Drawing type %s is not supported."):format(drawing.type))
+		error(("Drawing type %s is not supported"):format(drawing.type))
 	end
 
 	--[=[
 		Creates a new drawing.
 
-		@param string name The name of the drawing.
-		@param string type The type of the drawing.
-		@returns Drawing
+		@param sketchbook Sketchbook -- The sketchbook to create the drawing in
+		@param type DrawingType -- The type of the drawing
+		@within Drawing
+		@return Drawing
 	]=]
 	function Drawing.new(sketchbook: Sketchbook, type: DrawingType): Drawing
 		local self = setmetatable({}, Drawing)
@@ -248,17 +202,20 @@ do
 	--[=[
 		Get the sketchbook the drawing is in.
 
-		@returns Sketchbook
+		@within Drawing
+		@return Sketchbook
 	]=]
 	function Drawing:getSketchbook(): Sketchbook
 		return self.sketchbook
 	end
 
 	--[=[
-		Set the drawing's line thickness (only applicable to line drawings).
+		Set the drawing's line thickness *(only applicable to line drawings)*.
 
-		@param number thickness The thickness of the line.
-		@returns Drawing
+		@param thickness number -- The thickness of the line
+		@error "Cannot set line thickness of non-line drawing" -- The drawing is not a line drawing
+		@within Drawing
+		@return Drawing
 	]=]
 	function Drawing:setLineThickness(thickness: number): Drawing
 		assert(self.type == "Line", "Cannot set line thickness of non-line drawing")
@@ -269,9 +226,11 @@ do
 	end
 
 	--[=[
-		Get the drawing's line thickness (only applicable to line drawings).
+		Get the drawing's line thickness *(only applicable to line drawings)*.
 
-		@returns number
+		@error "Cannot set line thickness of non-line drawing" -- The drawing is not a line drawing
+		@within Drawing
+		@return number
 	]=]
 	function Drawing:getLineThickness(): number
 		assert(self.type == "Line", "Cannot get line thickness of non-line drawing")
@@ -281,6 +240,8 @@ do
 
 	--[=[
 		Cleans up the drawing, removing it from the sketchbook, cleaning up the renderer, and disconnecting all events.
+
+		@within Drawing
 	]=]
 	function Drawing:cleanup()
 		self:getSketchbook():removeDrawing(self)
@@ -301,12 +262,19 @@ end
 	Each sketchbook has a unique ID that can be used to identify it, and can be be modified when necessary.
 	
 	@class Sketchbook
+	@tag component
 ]=]
 local Sketchbook
 do
 	Sketchbook = {}
 	Sketchbook.__index = Sketchbook
 
+	--[=[
+		Creates a new sketchbook.
+
+		@within Sketchbook
+		@return Sketchbook
+	]=]
 	function Sketchbook.new(): Sketchbook
 		local self = setmetatable({}, Sketchbook)
 
@@ -321,8 +289,17 @@ do
 		return self
 	end
 
+	--[=[
+		Registers a drawing to the sketchbook. This will also register the drawing's renderer and connect all events.
+
+		@error "Cannot register drawing that is already registered" -- The drawing is already registered to the sketchbook
+		@error "Cannot register drawing that is already registered to another sketchbook" -- The drawing is already registered to another sketchbook
+		@param drawing Drawing -- The drawing to register
+		@within Sketchbook
+		@return Drawing -- The drawing that was registered
+	]=]
 	function Sketchbook:registerDrawing(drawing: Drawing): Drawing 
-		assert(drawing, "Cannot register nil drawing.")
+		assert(drawing, "Cannot register nil drawing")
 
 		local alreadyRegistered: boolean = false
 
@@ -333,15 +310,22 @@ do
 			end
 		end
 
-		assert(not alreadyRegistered, "Cannot register drawing that is already registered.")
+		assert(not alreadyRegistered, "Cannot register drawing that is already registered")
+		assert(drawing:getSketchbook() == nil, "Cannot register drawing that is already registered to another sketchbook")
 
 		table.insert(self._drawings, drawing)
 
 		return drawing
 	end
 
-	function Sketchbook:unregisterDrawing(drawing: Drawing): Drawing
-		assert(drawing, "Cannot unregister nil drawing.")
+	--[=[
+		Unregisters a drawing from the sketchbook. This will also unregister the drawing's renderer and disconnect all events.
+
+		@param drawing Drawing -- The drawing to unregister
+		@within Sketchbook
+	]=]
+	function Sketchbook:unregisterDrawing(drawing: Drawing)
+		assert(drawing, "Cannot unregister nil drawing")
 
 		local index: number = 0
 
@@ -352,21 +336,51 @@ do
 			end
 		end
 
-		assert(index ~= 0, "Cannot unregister drawing that is not registered.")
+		assert(index ~= 0, "Cannot unregister drawing that is not registered")
 
 		table.remove(self._drawings, index)
 
 		return drawing
 	end
 
+	--[=[
+		Gets all drawings registered to the sketchbook.
+
+		@within Sketchbook
+		@return Array<Drawing>
+	]=]
 	function Sketchbook:getDrawings(): Array<Drawing>
 		return self._drawings
 	end
 
+	--[=[
+		Sets the state of the sketchbook to be hidden or not.
+
+		@error "Cannot set status of dead sketchbook" -- The sketchbook is dead
+		@param hidden boolean -- Whether the sketchbook should be hidden or not
+		@within Sketchbook
+	]=]
 	function Sketchbook:setHidden(hidden: boolean)
+		assert(self.status ~= "Dead", "Cannot set status of dead sketchbook")
+
 		self.status = (hidden and "Hidden" or "Alive")
 	end
 
+	--[=[
+		Gets the status of the sketchbook.
+
+		@within Sketchbook
+		@return SketchbookStatus -- The status of the sketchbook
+	]=]
+	function Sketchbook:getStatus(): SketchbookStatus 
+		return self.status
+	end
+
+	--[=[
+		Cleans up the sketchbook, removing all drawings and connections.
+
+		@within Sketchbook
+	]=]
 	function Sketchbook:cleanup()
 		self.status = "Dead"
 		
@@ -384,13 +398,25 @@ end
 	@interface Status
 	@tag enum
 	@within Sketch
-	.Alive "Alive" -- The sketchbook is alive and visible in the world.
-	.Hidden "Hidden" -- The sketchbook is hidden and cannot be seen in the world.
-	.Dead "Dead" -- The sketchbook is dead and can no longer be used.
+	.Alive "Alive" -- The sketchbook is alive and visible in the world
+	.Hidden "Hidden" -- The sketchbook is hidden and cannot be seen in the world
+	.Dead "Dead" -- The sketchbook is dead and can no longer be used
 ]=]
 --[=[
-	A sketch is the API that is used to create and modify drawings. It is essentially a wrapper around a sketchbook that allows for
-	creation of drawings and other sketchable objects.
+	This is the API that used to create and modify drawings. It's essentially a wrapper that allows for
+	easy creation of drawings and sketchbooks to hold said drawings.
+
+	```lua
+	local Sketch = require("?")
+
+	local sketchbook: Sketch.Sketchbook = Sketch.createSketchbook()
+	local drawing: Sketch.Drawing = Sketch.drawText(sketchbook, "Hello, world!")
+
+	Sketch.render(sketchbook)
+
+	-- 🎉 Tada, you've created and rendered a drawing! 
+	-- Also, although not necessary, it's **highly** recommended you call the Sketch.render(...) function each frame as opposed to manually after you make changes)
+	```
 
 	@class Sketch
 ]=]
@@ -411,24 +437,37 @@ local Sketch = {
 	local sketchbook: Sketch.Sketchbook = Sketch.createSketchbook()
 	```
 
-	@returns Sketchbook
+	@return Sketchbook
 ]=]
 function Sketch.createSketchbook(): Sketchbook
 	return Sketchbook.new()
 end
 
 --[=[
-	Creates a new sketched text object and registers it in the sketched text registry.
-	This will then be drawn and updated every frame automatically.
-	
+	Creates a new text drawing and registers it in the provided sketchbook.
+
 	```lua
-	Sketch.drawText(sketchbook, text, position, color)
+	-- Create computables for the position, text, and color;
+	-- Computables can either be a static value or a function that will be called every render call
+	local position: Computable<Vector3> = Vector3.new(0, 0, 0)
+	local text: Computable<string> = function()
+		return "Hello, world!"
+	end
+	local color: Computable<Color3> = Color3.new(1, 1, 1)
+
+	-- Create a new sketchbook and drawing
+	local sketchbook: Sketchbook = Sketch.createSketchbook()
+	local drawing: Drawing = Sketch.drawText(sketchbook, text, position, color)
+
+	-- Render the sketchbook (and, in turn, all of its drawings) to the screen
+	Sketch.render(sketchbook)
 	```
 
-	@param Sketchbook sketchbook The sketchbook to draw the text on.
-	@param string | Computable text The text to draw.
-	@param Vector3 position The position to draw the text at.
-	@param Color3 color The color to draw the text in.
+	@param sketchbook Sketchbook -- The sketchbook to draw the text on
+	@param text Computable<string> -- The text to draw
+	@param position Computable<Vector3> -- The position to draw the text at
+	@param color Computable<Color3> -- The color to draw the text in
+	@within Sketch
 	@return Drawing 
 ]=]
 function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Computable<Vector3>?, color: Computable<Color3>?): Drawing
@@ -449,6 +488,40 @@ function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, posit
 end
 
 --[=[
+	Creates a new line drawing and registers it in the provided sketchbook.
+
+	```lua
+	-- Create computables for the initial point XYZ, secondary point XYZ, color, and thickness;
+	-- Computables can either be a static value or a function that will be called every render call
+	local point1: Computable<Vector3> = function()
+		return Vector3.new(0, math.sin(tick()), 0)
+	end
+	local point2: Computable<Vector3> = Vector3.new(1, math.cos(tick()), 0)
+	local color: Computable<Color3> = Color3.new(1, 1, 1)
+	local thickness: Computable<number> = 1
+
+	-- Create a new sketchbook and drawing
+	local sketchbook: Sketchbook = Sketch.createSketchbook()
+	local drawing: Drawing = Sketch.drawLine(sketchbook, text, point1, point2, color, thickness)
+
+	-- Render the sketchbook (and, in turn, all of its drawings) to the screen
+	Sketch.render(sketchbook)
+	```
+
+	@param sketchbook Sketchbook -- The sketchbook to draw the text on
+	@param point1 Computable<Vector3> -- The first point to draw the line between
+	@param point2 Computable<Vector3> -- The second point to draw the line between
+	@param color Computable<Color3> -- The color to draw the line in
+	@param thickness Computable<number> -- The thickness of the line
+	@tag unimplemented
+	@unreleased
+	@within Sketch
+]=]
+function Sketch.drawLine(sketchbook: Sketchbook, point1: Computable<Vector3>, point2: Computable<Vector3>, color: Computable<Color3>, thickness: Computable<number>): Drawing
+	error("Not implemented")
+end
+
+--[=[
 	Renders a sketchbook to the screen. Although not necessary, it is recommended that this function
 	be called each frame instead of manually after each change to the sketchbook or its drawings.
 	
@@ -461,7 +534,7 @@ end
 	Sketch.render(sketchbook)
 	```
 
-	@param Sketchbook sketchbook The sketchbook to render.
+	@param sketchbook Sketchbook -- The sketchbook to render
 	@return nil
 ]=]
 function Sketch.render(sketchbook: Sketchbook): ()
@@ -474,8 +547,8 @@ end
 	Removes a drawing from a sketchbook. This function should be called when you are done with a drawing and no longer
 	want it to be rendered or used.
 
-	@param Sketchbook sketchbook The sketchbook to remove the drawing from.
-	@param Drawing drawing The drawing to remove.
+	@param sketchbook Sketchbook -- The sketchbook to remove the drawing from
+	@param drawing Drawing -- The drawing to remove
 	@return nil
 ]=]
 function Sketch.removeDrawing(sketchbook: Sketchbook, drawing: Drawing): ()

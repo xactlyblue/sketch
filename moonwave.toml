@@ -1,0 +1,19 @@
+title = "Sketch"
+gitRepoUrl = "https://github.com/xactlyblue/sketch"
+
+gitSourceBranch = "main"
+changelog = true
+classOrder = [ "Sketch", "Sketchbook", "Drawing", "Renderer"]
+
+[docusaurus]
+onBrokenLinks = "throw"
+onBrokenMarkdownLinks = "warn"
+
+organizationName = "xactlyblue"
+projectName = "sketch"
+url = "https://xactlyblue.github.io"
+baseUrl = "/sketch"
+tagline = "Elegant & simple visual debugging for Roblox"
+
+[footer]
+copyright = "Copyright © 2023 xactlyblue.<br><b>Built with Moonwave and Docusaurus</b>"
