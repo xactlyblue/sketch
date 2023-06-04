@@ -16,9 +16,9 @@ end)
 local drawings: { [Model]: Drawing } = {}
 
 local function characterAdded(character: Model)
-	local humanoid: Humanoid? = character:FindFirstChildOfClass("Humanoid")
-	
-	assert(humanoid, "Character must have a Humanoid")
+	local humanoid: Instance? = character:WaitForChild("Humanoid", 10)
+
+	assert(humanoid ~= nil and humanoid:IsA("Humanoid"))
 
 	local rootPart: BasePart? = humanoid.RootPart
 
