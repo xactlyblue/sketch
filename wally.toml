@@ -1,9 +1,15 @@
 [package]
 name = "xactlyblue/sketch"
+description = "A simple solution to visual debugging in Roblox."
 version = "1.0.0"
+license = "MIT"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 authors = [ "xactlyblue" ]
+exclude = [ "docs", "Packages", ".moonwave", "build", "pages" ]
 
 [dependencies]
-promise = "evaera/promise@4.0.0"
+Maid = "flamenco687/maid@3.2.2"
+
+[dev-dependencies]
+TestEZ = "roblox/testez@0.4.1"
