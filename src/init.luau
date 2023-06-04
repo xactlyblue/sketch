@@ -173,9 +173,10 @@ do
 	Renderer = {}
 	Renderer.__index = Renderer
 
-	function Renderer.new(drawingType: DrawingType): Renderer
+	function Renderer.new(drawing: Drawing, drawingType: DrawingType): Renderer
 		local self = setmetatable({}, Renderer)
 
+		self.drawing = drawing
 		self.drawingType = drawingType
 
 		return self
@@ -189,6 +190,7 @@ do
 		warn("Abstract method not implemented")
 		setmetatable(self, nil)
 	end
+
 end
 
 --[=[
@@ -204,8 +206,8 @@ do
 
 	setmetatable(TextRenderer, Renderer)
 
-	function TextRenderer.new(): Renderer
-		return setmetatable(Renderer.new("Text"), TextRenderer)
+	function TextRenderer.new(drawing: Drawing): Renderer
+		return setmetatable(Renderer.new("Text", drawing), TextRenderer)
 	end
 
 	function TextRenderer:render(drawing: Drawing): Instance
@@ -366,7 +368,6 @@ do
 		self.renderer = createRenderer(self)
 
 		self._connections = {} :: Connections
-		self._renderedHolder = nil :: Instance?
 
 		return self
 	end

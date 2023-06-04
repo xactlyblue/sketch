@@ -1,5 +1,4 @@
-local Sketch = script:FindFirstAncestor("Sketch") :: Instance
-local Constants = require(Sketch:WaitForChild("Constants"))
+local Constants = require(script.Parent:WaitForChild("Constants"))
 
 local Debris = game:GetService("Debris")
 local CollectionService = game:GetService("CollectionService")
