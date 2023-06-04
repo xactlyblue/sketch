@@ -77,6 +77,7 @@ export type Drawing = {
 
 	getSketchbook: (Drawing) -> Sketchbook,
 	getRenderer: (Drawing) -> Renderer,
+	cleanup: (Drawing) -> (),
 }
 
 export type Renderer = {

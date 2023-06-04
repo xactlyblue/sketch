@@ -21,6 +21,17 @@ export type Renderer = Types.Renderer
 --#endregion
 
 --[=[
+	Retrieve the value of a computable value.
+]=]
+local function retrieveComputableValue<T>(computable: Computable<T>): T
+	if typeof(computable) == "function" then
+		return computable()
+	else
+		return computable
+	end
+end
+
+--[=[
 	A renderer is a class that can be used to render a drawing in the world.
 
 	@class Renderer
@@ -36,10 +47,20 @@ do
 		self.drawing = drawing
 		self.drawingType = drawingType
 
+		self.cachedInstance = nil
+
 		return self 
 	end
 
 	function Renderer:render(drawing: Drawing): Instance
+		error("Abstract method not implemented")
+	end
+
+	function Renderer:setCachedInstance<T>(instance: T?)
+		error("Abstract method not implemented")
+	end
+
+	function Renderer:getCachedInstance<T>(): T?
 		error("Abstract method not implemented")
 	end
 
@@ -71,29 +92,38 @@ do
 	function TextRenderer:render(drawing: Drawing): Instance
 		assert(drawing.type == "Text", "TextRenderer can only render Text drawings")
 
-		local params: any = drawing.parameters.textParams
+		local cachedInstance: BillboardGui? = self:getCachedInstance()
 
-		local text: string = params.text
-		local color: Color3 = params.color
-		local font: Enum.Font = params.font
-		local size: number = params.size
-		
-		local parent: Instance = workspace.CurrentCamera
-		local billboardGui: BillboardGui = Utils.generateBillboardForText(text, parent)
+		if cachedInstance ~= nil then
 
-		local textLabel: TextLabel = Instance.new("TextLabel")
-		textLabel.Text = text
-		textLabel.TextColor3 = color
-		textLabel.Font = font
-		textLabel.TextSize = size
+		else
+			local params: any = drawing.parameters.textParams
 
-		textLabel.Size = UDim2.new(1, 0, 1, 0)
-		textLabel.BackgroundTransparency = 1
-		textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-		textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-		textLabel.Parent = billboardGui
+			local text: string = retrieveComputableValue(params.text)
+			local color: Color3 = retrieveComputableValue(params.color)
+			local font: Font = retrieveComputableValue(params.font)
+			local size: number = retrieveComputableValue(params.size)
 
-		return textLabel
+			local parent: Instance = workspace.CurrentCamera
+			local billboardGui: BillboardGui = Utils.generateBillboardForText(text, parent)
+
+			local textLabel: TextLabel = Instance.new("TextLabel")
+			textLabel.Text = text
+			textLabel.Size = UDim2.new(1, 0, 1, 0)
+			textLabel.TextColor3 = color
+			textLabel.FontFace = font
+			textLabel.TextSize = size
+			textLabel.BackgroundTransparency = 1
+			textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+			textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+			textLabel.Parent = billboardGui
+
+			self:setCachedInstance(billboardGui)
+
+			return billboardGui 
+		end
+
+		return self:getCachedInstance()
 	end
 	
 	function TextRenderer:cleanup()

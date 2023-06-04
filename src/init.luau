@@ -1,3 +1,4 @@
+--!nonstrict
 local Types = require(script:WaitForChild("Types"))
 local Constants = require(script:WaitForChild("Constants"))
 local Renderers	= require(script:WaitForChild("Renderers"))
@@ -88,6 +89,8 @@ do
 	--#region Generate Drawing Parameters
 	--[=[
 		Generates the default drawing parameters for a line.
+
+		@return DrawingParameters
 	]=]
 	local function generateLineParameters(): DrawingParameters
 		return {
@@ -103,6 +106,8 @@ do
 
 	--[=[
 		Generates the default drawing parameters for a circle.
+
+		@return DrawingParameters
 	]=]
 	local function generateCircleParameters(): DrawingParameters
 		return {
@@ -116,6 +121,8 @@ do
 
 	--[=[
 		Generates the default drawing parameters for a rectangle.
+
+		@return DrawingParameters
 	]=]
 	local function generateRectangleParameters(): DrawingParameters
 		return {
@@ -133,6 +140,8 @@ do
 
 	--[=[
 		Generates the default drawing parameters for a triangle.
+
+		@return DrawingParameters
 	]=]
 	local function generateTriangleParameters(): DrawingParameters
 		return {
@@ -151,6 +160,8 @@ do
 
 	--[=[
 		Generates the default drawing parameters for a text object.
+
+		@return DrawingParameters
 	]=]
 	local function generateTextParameters(): DrawingParameters
 		return {
@@ -164,6 +175,36 @@ do
 	end
 	--#endregion
 
+	--[=[
+		Depending on the drawing type, generates the default drawing parameters.
+
+		@param drawing Drawing
+		@return DrawingParameters
+	]=]
+	local function generateParameters(drawing: Drawing): DrawingParameters
+		local parameters: DrawingParameters
+
+		if drawing.type == "Line" then
+			parameters = generateLineParameters()
+		elseif drawing.type == "Circle" then
+			parameters = generateCircleParameters()
+		elseif drawing.type == "Rectangle" then
+			parameters = generateRectangleParameters()
+		elseif drawing.type == "Triangle" then
+			parameters = generateTriangleParameters()
+		elseif drawing.type == "Text" then
+			parameters = generateTextParameters()
+		end
+
+		return parameters
+	end
+
+	--[=[
+		Generates a renderer for a drawing.
+
+		@param drawing Drawing
+		@return Renderer
+	]=]
 	local function createRenderer(drawing: Drawing): Renderer
 		if drawing.type == "Line" then
 			return Renderers.LineRenderer.new(drawing, drawing:getSketchbook())
@@ -196,38 +237,29 @@ do
 		self.type = type
 		self.color = Color3.new(1, 1, 1)
 		self.transparency = 0
-		self.parameters = self:_generateParameters() 
-
+		self.parameters = generateParameters(self)
 		self.renderer = createRenderer(self)
 
-		self._connections = {} :: Connections
+		self._connections = ({} :: Connections?)
 
 		return self
 	end
 
-	function Drawing:_generateParameters(): DrawingParameters
-		local parameters: DrawingParameters
+	--[=[
+		Get the sketchbook the drawing is in.
 
-		if self.type == "Line" then
-			parameters = generateLineParameters()
-		elseif self.type == "Circle" then
-			parameters = generateCircleParameters()
-		elseif self.type == "Rectangle" then
-			parameters = generateRectangleParameters()
-		elseif self.type == "Triangle" then
-			parameters = generateTriangleParameters()
-		elseif self.type == "Text" then
-			parameters = generateTextParameters()
-		end
-
-		return parameters
-	end
-
+		@returns Sketchbook
+	]=]
 	function Drawing:getSketchbook(): Sketchbook
 		return self.sketchbook
 	end
 
-	--#region Drawing Parameter Getters/Setters
+	--[=[
+		Set the drawing's line thickness (only applicable to line drawings).
+
+		@param number thickness The thickness of the line.
+		@returns Drawing
+	]=]
 	function Drawing:setLineThickness(thickness: number): Drawing
 		assert(self.type == "Line", "Cannot set line thickness of non-line drawing")
 
@@ -236,13 +268,20 @@ do
 		return self 
 	end
 
+	--[=[
+		Get the drawing's line thickness (only applicable to line drawings).
+
+		@returns number
+	]=]
 	function Drawing:getLineThickness(): number
 		assert(self.type == "Line", "Cannot get line thickness of non-line drawing")
 
 		return self.parameters.lineParams.thickness
 	end
-	--#endregion
 
+	--[=[
+		Cleans up the drawing, removing it from the sketchbook, cleaning up the renderer, and disconnecting all events.
+	]=]
 	function Drawing:cleanup()
 		self:getSketchbook():removeDrawing(self)
 		self:getRenderer():cleanup()
@@ -257,16 +296,6 @@ do
 	end
 end
 
---[=[
-	An enum value to represent a sketchbook's status.
-
-	@interface Status
-	@tag enum
-	@within Sketchbook
-	.Alive "Alive" -- The sketchbook is alive and visible in the world.
-	.Hidden "Hidden" -- The sketchbook is hidden and cannot be seen in the world.
-	.Dead "Dead" -- The sketchbook is dead and can no longer be used.
-]=]
 --[=[
 	A sketchbook is essentially a container that can hold sketched objects (which will then be rendered to the world at runtime).
 	Each sketchbook has a unique ID that can be used to identify it, and can be be modified when necessary.
@@ -292,7 +321,6 @@ do
 		return self
 	end
 
-	-- TODO!
 	function Sketchbook:registerDrawing(drawing: Drawing): Drawing 
 		assert(drawing, "Cannot register nil drawing.")
 
@@ -312,6 +340,29 @@ do
 		return drawing
 	end
 
+	function Sketchbook:unregisterDrawing(drawing: Drawing): Drawing
+		assert(drawing, "Cannot unregister nil drawing.")
+
+		local index: number = 0
+
+		for i, entry: Drawing in ipairs(self._drawings) do
+			if entry.uuid == drawing.uuid then
+				index = i
+				break
+			end
+		end
+
+		assert(index ~= 0, "Cannot unregister drawing that is not registered.")
+
+		table.remove(self._drawings, index)
+
+		return drawing
+	end
+
+	function Sketchbook:getDrawings(): Array<Drawing>
+		return self._drawings
+	end
+
 	function Sketchbook:setHidden(hidden: boolean)
 		self.status = (hidden and "Hidden" or "Alive")
 	end
@@ -328,12 +379,30 @@ do
 end
 
 --[=[
+	An enum value to represent a sketchbook's status.
+
+	@interface Status
+	@tag enum
+	@within Sketch
+	.Alive "Alive" -- The sketchbook is alive and visible in the world.
+	.Hidden "Hidden" -- The sketchbook is hidden and cannot be seen in the world.
+	.Dead "Dead" -- The sketchbook is dead and can no longer be used.
+]=]
+--[=[
 	A sketch is the API that is used to create and modify drawings. It is essentially a wrapper around a sketchbook that allows for
 	creation of drawings and other sketchable objects.
 
 	@class Sketch
 ]=]
-local Sketch = {}
+local Sketch = {
+	Status = ({
+		Alive = "Alive",
+		Hidden = "Hidden",
+		Dead = "Dead",
+	} :: {
+		[string]: DrawingType 
+	})
+}
 
 --[=[
 	Creates a sketchbook that can then contain other sketchable objects.
@@ -362,18 +431,18 @@ end
 	@param Color3 color The color to draw the text in.
 	@return Drawing 
 ]=]
-function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Vector3?, color: Color3?): Drawing
+function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Computable<Vector3>?, color: Computable<Color3>?): Drawing
 	assert(isComputable(text, "string"), "Invalid argument #2, expected Computable<string>")
 
 	local drawing = Drawing.new(sketchbook, "Text")
 
 	sketchbook:registerDrawing(drawing)
 
-	drawing:setText(text)
-	drawing:setColor(color or Color3.new(1, 1, 1))
+	--drawing:setText(text)
+	--drawing:setColor(color or Color3.new(1, 1, 1))
 
 	if position ~= nil then
-		drawing:setTextPosition(position)
+	--	drawing:setTextPosition(position)
 	end
 
 	return drawing 
@@ -411,6 +480,7 @@ end
 ]=]
 function Sketch.removeDrawing(sketchbook: Sketchbook, drawing: Drawing): ()
 	sketchbook:unregisterDrawing(drawing)
+	drawing:cleanup()
 end
 
 return Sketch
