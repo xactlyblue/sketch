@@ -1,14 +1,29 @@
-local library = script.Parent :: Instance
-local Constants = require(library:WaitForChild("Constants"))
-local Utils	= require(library:WaitForChild("Utils"))
-
-type Array<T> = {[number]: T}
-
+local Types = require(script:WaitForChild("Types"))
+local Constants = require(script:WaitForChild("Constants"))
+local Renderers	= require(script:WaitForChild("Renderers"))
 
 --#region Services
 local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
 local HttpService = game:GetService("HttpService")
+--#endregion
+
+--#region Type Definitions
+export type Computable<T> = Types.Computable<T>
+export type Enum<T> = Types.Enum<T>
+export type Array<T> = Types.Array<T>
+
+export type Callback = Types.Callback
+export type Connection = Types.Connection
+export type Connections = Types.Connections
+
+export type SketchbookStatus = Types.SketchbookStatus
+export type Sketchbook = Types.Sketchbook
+
+export type Drawing = Types.Drawing
+export type DrawingType = Types.DrawingType
+export type DrawingParameters = Types.DrawingParameters
+export type Renderer = Types.Renderer
 --#endregion
 
 local sketchbookRegistry: { Sketchbook } = {}
@@ -25,7 +40,7 @@ end
 --[=[
 	Creates a read-only table that acts as an enum.
 ]=]
-local function createEnum<T>(values: { T }): Enum<T> 
+local function createEnum<T>(values: Array<T>): Enum<T> 
 	local enum: Enum<T> = {}
 
 	for _, value: T in ipairs(values) do
@@ -36,16 +51,6 @@ local function createEnum<T>(values: { T }): Enum<T>
 end
 
 --[=[
-	A computable value that runs the given function (if provided) to get the result.
-]=]
-type Computable<T> = T | (() -> T)
-
---[=[
-	An enum value that can be used to specify specific enum values.
-]=]
-type Enum<T> = { [string]: T }
-
---[=[
 	Get whether the given value is a computable value.
 ]=]
 local function isComputable(value: unknown, expectedType: string): boolean
@@ -53,88 +58,6 @@ local function isComputable(value: unknown, expectedType: string): boolean
 		or typeof(value) == "function"
 end
 
---#region Type Definitions
-
--- The status of the sketchbook
-export type SketchbookStatus = "Alive" | "Hidden" | "Dead"
-
--- A sketchbook that holds sketches, which can then be rendered in the world at runtime
-export type Sketchbook = {
-	uuid: string,
-	status: SketchbookStatus,
-
-	registerDrawing: (Sketchbook, Drawing) -> (),
-	removeDrawing: (Sketchbook, Drawing) -> (),
-
-	getDrawings: (Sketchbook) -> Array<Drawing>,
-}
-
--- A drawing that can be rendered in the world at runtime
-export type DrawingType = "Line" | "Circle" | "Rectangle" | "Triangle" | "Text"
-export type DrawingParameters = {
-	lineParams: ({ 
-		thickness: number,
-		points: { 
-			first: Vector3,
-			second: Vector3
-		}
-	})?,
-
-	circleParams: ({
-		radius: number,
-		filled: boolean,
-		position: Vector3,
-	})?,
-
-	rectangleParams: ({
-		size: { 
-			width: number,
-			height: number
-		},
-
-		filled: boolean,
-		position: Vector3,
-	})?,
-
-	triangleParams: ({
-		points: { 
-			first: Vector3,
-			second: Vector3,
-			third: Vector3
-		},
-
-		filled: boolean,
-		position: Vector3,
-	})?,
-
-	textParams: ({
-		text: Computable<string>,
-		size: number,
-		font: Font?,
-		position: Vector3,
-	})?
-}
-export type Drawing = {
-	uuid: string,
-	sketchbook: Sketchbook,
-	type: DrawingType,
-	color: Color3,
-	transparency: number?,
-	parameters: DrawingParameters,
-
-	getSketchbook: (Drawing) -> Sketchbook,
-	getRenderer: (Drawing) -> Renderer,
-}
-export type Renderer = {
-	new: (DrawingType) -> Renderer,
-	render: (Drawing) -> Instance
-}
-
-type Callback = () -> ()
-type Connection = RBXScriptConnection | Instance | Callback
-type Connections = { [number]: Connection }
-
---#endregion
 
 --[=[
 	Cleans up the given connection (somewhat like Quenty's Maid class)
@@ -149,99 +72,6 @@ local function cleanupConnection(connection: Connection): ()
 	elseif typeof(connection) == "function" then
 		connection()
 	end
-end
-
---[=[
-	An enum value to represent a sketchbook's status.
-
-	@interface Status
-	@tag enum
-	@within Sketchbook
-	.Alive "Alive" -- The sketchbook is alive and visible in the world.
-	.Hidden "Hidden" -- The sketchbook is hidden and cannot be seen in the world.
-	.Dead "Dead" -- The sketchbook is dead and can no longer be used.
-]=]
-local Status: Enum<SketchbookStatus> = createEnum<SketchbookStatus>({ "Alive", "Hidden", "Dead" })
-
---[=[
-	A renderer is a class that can be used to render a drawing in the world.
-
-	@class Renderer
-]=]
-local Renderer
-do
-	Renderer = {}
-	Renderer.__index = Renderer
-
-	function Renderer.new(drawing: Drawing, drawingType: DrawingType): Renderer
-		local self = setmetatable({}, Renderer)
-
-		self.drawing = drawing
-		self.drawingType = drawingType
-
-		return self
-	end
-
-	function Renderer:render(drawing: Drawing): Instance
-		error("Abstract method not implemented")
-	end
-
-	function Renderer:cleanup()
-		warn("Abstract method not implemented")
-		setmetatable(self, nil)
-	end
-
-end
-
---[=[
-	A renderer that uses the built-in Drawing API to render a text drawing in the world.
-
-	@extends Renderer
-	@class TextRenderer
-]=]
-local TextRenderer
-do
-	TextRenderer = {}
-	TextRenderer.__index = TextRenderer
-
-	setmetatable(TextRenderer, Renderer)
-
-	function TextRenderer.new(drawing: Drawing): Renderer
-		return setmetatable(Renderer.new("Text", drawing), TextRenderer)
-	end
-
-	function TextRenderer:render(drawing: Drawing): Instance
-		assert(drawing.type == "Text", "TextRenderer can only render Text drawings")
-
-		local params: any = drawing.parameters.textParams
-
-		local text: string = params.text
-		local color: Color3 = params.color
-		local font: Enum.Font = params.font
-		local size: number = params.size
-		
-		local parent: Instance = workspace.CurrentCamera
-		local billboardGui: BillboardGui = Utils.generateBillboardForText(text, parent)
-
-		local textLabel: TextLabel = Instance.new("TextLabel")
-		textLabel.Text = text
-		textLabel.TextColor3 = color
-		textLabel.Font = font
-		textLabel.TextSize = size
-
-		textLabel.Size = UDim2.new(1, 0, 1, 0)
-		textLabel.BackgroundTransparency = 1
-		textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-		textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-		textLabel.Parent = billboardGui
-
-		return textLabel
-	end
-	
-	function TextRenderer:cleanup()
-		setmetatable(self, nil)
-	end
-
 end
 
 --[=[
@@ -336,12 +166,15 @@ do
 
 	local function createRenderer(drawing: Drawing): Renderer
 		if drawing.type == "Line" then
-			return LineRenderer.new(drawing, drawing:getSketchbook())
+			return Renderers.LineRenderer.new(drawing, drawing:getSketchbook())
 		elseif drawing.type == "Circle" then
-			return CircleRenderer.new(drawing)
+			return Renderers.CircleRenderer.new(drawing)
 		elseif drawing.type == "Rectangle" then
+			return Renderers.RectangleRenderer.new(drawing)
 		elseif drawing.type == "Triangle" then
+			return Renderers.TriangleRenderer.new(drawing)
 		elseif drawing.type == "Text" then
+			return Renderers.TextRenderer.new(drawing)
 		end
 		
 		error(("Drawing type %s is not supported."):format(drawing.type))
@@ -424,6 +257,16 @@ do
 	end
 end
 
+--[=[
+	An enum value to represent a sketchbook's status.
+
+	@interface Status
+	@tag enum
+	@within Sketchbook
+	.Alive "Alive" -- The sketchbook is alive and visible in the world.
+	.Hidden "Hidden" -- The sketchbook is hidden and cannot be seen in the world.
+	.Dead "Dead" -- The sketchbook is dead and can no longer be used.
+]=]
 --[=[
 	A sketchbook is essentially a container that can hold sketched objects (which will then be rendered to the world at runtime).
 	Each sketchbook has a unique ID that can be used to identify it, and can be be modified when necessary.
@@ -510,11 +353,7 @@ end
 	This will then be drawn and updated every frame automatically.
 	
 	```lua
-	Sketch.drawText({
-		position = Vector3.new(0, 5, 0),
-		text = "Hello, world!",
-		color = Color3.new(1, 1, 1)
-	}, sketchbook)
+	Sketch.drawText(sketchbook, text, position, color)
 	```
 
 	@param Sketchbook sketchbook The sketchbook to draw the text on.
@@ -560,6 +399,18 @@ function Sketch.render(sketchbook: Sketchbook): ()
 	for _, drawing: Drawing in pairs(sketchbook:getDrawings()) do
 		local renderer: Renderer = drawing:getRenderer()
 	end
+end
+
+--[=[
+	Removes a drawing from a sketchbook. This function should be called when you are done with a drawing and no longer
+	want it to be rendered or used.
+
+	@param Sketchbook sketchbook The sketchbook to remove the drawing from.
+	@param Drawing drawing The drawing to remove.
+	@return nil
+]=]
+function Sketch.removeDrawing(sketchbook: Sketchbook, drawing: Drawing): ()
+	sketchbook:unregisterDrawing(drawing)
 end
 
 return Sketch
