@@ -4,9 +4,15 @@ description = "A simple solution to visual debugging in Roblox."
 version = "1.0.0"
 license = "MIT"
 registry = "https://github.com/UpliftGames/wally-index"
+homepage = "https://xactlyblue.github.io/sketch"
 realm = "shared"
 authors = [ "xactlyblue" ]
-exclude = [ "docs", "Packages", ".moonwave", "build", "pages" ]
+exclude = [ "docs", ".moonwave", "build", "pages" ]
+include = [ "src" ]
+
+[dependencies]
+Roact = "roblox/roact@1.4.4"
+Promise = "evaera/promise@2.0.1"
 
 [dev-dependencies]
 TestEZ = "roblox/testez@0.4.1"

@@ -1,8 +1,11 @@
 --!nonstrict
 local Types = require(script:WaitForChild("Types"))
 local Constants = require(script:WaitForChild("Constants"))
-local Renderers	= require(script:WaitForChild("Renderers"))
 local Utils = require(script:WaitForChild("Utils"))
+
+local Renderers = script:WaitForChild("Renderers")
+local TextRenderer = require(Renderers:WaitForChild("TextRenderer"))
+local LineRenderer = require(Renderers:WaitForChild("LineRenderer"))
 
 --#region Services
 local RunService = game:GetService("RunService")
@@ -11,9 +14,10 @@ local HttpService = game:GetService("HttpService")
 --#endregion
 
 --#region Type Definitions
+type Enum<T> = Types.Enum<T>
+type Array<T> = Types.Array<T>
+
 export type Computable<T> = Types.Computable<T>
-export type Enum<T> = Types.Enum<T>
-export type Array<T> = Types.Array<T>
 
 export type Callback = Types.Callback
 export type Connection = Types.Connection
@@ -25,6 +29,7 @@ export type Sketchbook = Types.Sketchbook
 export type Drawing = Types.Drawing
 export type DrawingType = Types.DrawingType
 export type DrawingParameters = Types.DrawingParameters
+
 export type Renderer = Types.Renderer
 --#endregion
 
@@ -162,15 +167,15 @@ do
 
 	local function createRenderer(drawing: Drawing): Renderer
 		if drawing.type == "Line" then
-			return Renderers.LineRenderer.new(drawing, drawing:getSketchbook())
+			return LineRenderer.new(drawing, drawing:getSketchbook())
 		elseif drawing.type == "Circle" then
-			return Renderers.CircleRenderer.new(drawing)
+			return CircleRenderer.new(drawing)
 		elseif drawing.type == "Rectangle" then
-			return Renderers.RectangleRenderer.new(drawing)
+			return RectangleRenderer.new(drawing)
 		elseif drawing.type == "Triangle" then
-			return Renderers.TriangleRenderer.new(drawing)
+			return TriangleRenderer.new(drawing)
 		elseif drawing.type == "Text" then
-			return Renderers.TextRenderer.new(drawing)
+			return TextRenderer.new(drawing)
 		end
 		
 		error(("Drawing type %s is not supported"):format(drawing.type))
