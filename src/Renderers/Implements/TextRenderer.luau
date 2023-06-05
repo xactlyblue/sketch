@@ -62,7 +62,7 @@ end
 function TextRenderer:render(): Instance
 	assert(self.drawing.type == "Text", "TextRenderer can only render Text drawings")
 
-	local params: any = self.drawing.parameters.textParams
+	local params: any = self.drawing.parameters
 
 	local text: string = Utils.retrieveComputableValue(params.text, "string")
 	local color: Color3 = Utils.retrieveComputableValue(params.color, "Color3")

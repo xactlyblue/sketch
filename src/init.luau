@@ -201,7 +201,7 @@ do
 	function Drawing:setText(text: Computable<string>): Drawing
 		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
 		
-		self.parameters.textParams.text = text
+		self.parameters.text = text
 
 		return self
 	end
@@ -225,7 +225,7 @@ do
 	function Drawing:getTextSize()
 		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
 		
-		return self.parameters.textParams.size
+		return self.parameters.size
 	end
 
 	--[=[
@@ -248,7 +248,7 @@ do
 	function Drawing:setTextSize(size: Computable<number>): Drawing
 		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
 		
-		self.parameters.textParams.size = size
+		self.parameters.size = size
 
 		return self
 	end
@@ -272,7 +272,7 @@ do
 	function Drawing:getTextPosition()
 		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
 		
-		return self.parameters.textParams.position
+		return self.parameters.position
 	end
 
 	--[=[
@@ -295,7 +295,7 @@ do
 	function Drawing:setTextPosition(position: Computable<Vector3>): Drawing
 		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
 		
-		self.parameters.textParams.position = position
+		self.parameters.position = position
 
 		return self
 	end
