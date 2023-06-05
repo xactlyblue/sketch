@@ -9,6 +9,3 @@ realm = "shared"
 authors = [ "xactlyblue" ]
 exclude = [ "docs", ".moonwave", "build", "pages" ]
 include = [ "src" ]
-
-[dev-dependencies]
-TestEZ = "roblox/testez@0.4.1"
