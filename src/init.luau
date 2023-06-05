@@ -4,8 +4,11 @@ local Constants = require(script:WaitForChild("Constants"))
 local Utils = require(script:WaitForChild("Utils"))
 
 local Renderers = script:WaitForChild("Renderers")
-local TextRenderer = require(Renderers:WaitForChild("TextRenderer"))
-local LineRenderer = require(Renderers:WaitForChild("LineRenderer"))
+local TextRenderer = require(Renderers.Implements.TextRenderer)
+local LineRenderer = require(Renderers.Implements.LineRenderer)
+local CircleRenderer = require(Renderers.Implements.CircleRenderer)
+local RectangleRenderer = require(Renderers.Implements.RectangleRenderer)
+local TriangleRenderer = require(Renderers.Implements.TriangleRenderer)
 
 --#region Services
 local RunService = game:GetService("RunService")
@@ -29,6 +32,12 @@ export type Sketchbook = Types.Sketchbook
 export type Drawing = Types.Drawing
 export type DrawingType = Types.DrawingType
 export type DrawingParameters = Types.DrawingParameters
+
+export type TriangleDrawingParameters = Types.TriangleDrawingParameters
+export type RectangleDrawingParameters = Types.RectangleDrawingParameters
+export type CircleDrawingParameters = Types.CircleDrawingParameters
+export type LineDrawingParameters = Types.LineDrawingParameters
+export type TextDrawingParameters = Types.TextDrawingParameters
 
 export type Renderer = Types.Renderer
 --#endregion
@@ -77,97 +86,9 @@ do
 	Drawing = {}
 	Drawing.__index = Drawing
 
-	--#region Generate Drawing Parameters
-	local function generateLineParameters(): DrawingParameters
-		return {
-			lineParams = {
-				thickness = 1,
-				points = {
-					first = Vector3.new(0, 0, 0),
-					second = Vector3.new(0, 0, 0)
-				},
-				color = Color3.fromRGB(255, 255, 255),
-			}
-		}
-	end
-
-	local function generateCircleParameters(): DrawingParameters
-		return {
-			circleParams = {
-				radius = 1,
-				filled = false,
-				position = Vector3.new(0, 0, 0),
-				color = Color3.fromRGB(255, 255, 255),
-			}
-		}
-	end
-
-	local function generateRectangleParameters(): DrawingParameters
-		return {
-			rectangleParams = {
-				size = {
-					width = 1,
-					height = 1
-				},
-
-				filled = false,
-				position = Vector3.new(0, 0, 0),
-				color = Color3.fromRGB(255, 255, 255),
-			}
-		}
-	end
-
-	local function generateTriangleParameters(): DrawingParameters
-		return {
-			triangleParams = {
-				points = {
-					first = Vector3.new(0, 0, 0),
-					second = Vector3.new(0, 0, 0),
-					third = Vector3.new(0, 0, 0)
-				},
-
-				filled = false,
-				position = Vector3.new(0, 0, 0),
-				color = Color3.fromRGB(255, 255, 255),
-			}
-		}
-	end
-
-	local function generateTextParameters(): DrawingParameters
-		return {
-			textParams = {
-				text = "Undefined", 
-				position = Vector3.new(0, 0, 0),
-				size = 1,
-				font = Font.fromEnum(Enum.Font.RobotoMono),
-				color = Color3.fromRGB(255, 255, 255),
-				alwaysOnTop = false,
-			}
-		}
-	end
-	--#endregion
-
-	local function generateParameters(drawing: Drawing): DrawingParameters
-		local parameters: DrawingParameters
-
-		if drawing.type == "Line" then
-			parameters = generateLineParameters()
-		elseif drawing.type == "Circle" then
-			parameters = generateCircleParameters()
-		elseif drawing.type == "Rectangle" then
-			parameters = generateRectangleParameters()
-		elseif drawing.type == "Triangle" then
-			parameters = generateTriangleParameters()
-		elseif drawing.type == "Text" then
-			parameters = generateTextParameters()
-		end
-
-		return parameters
-	end
-
 	local function createRenderer(drawing: Drawing): Renderer
 		if drawing.type == "Line" then
-			return LineRenderer.new(drawing, drawing:getSketchbook())
+			return LineRenderer.new(drawing)
 		elseif drawing.type == "Circle" then
 			return CircleRenderer.new(drawing)
 		elseif drawing.type == "Rectangle" then
@@ -196,7 +117,7 @@ do
 		self.sketchbook = sketchbook
 		self.type = type
 
-		self.parameters = generateParameters(self)
+		self.parameters = Utils.generateDefaultParameters(self)
 		self.renderer = createRenderer(self)
 
 		self._connections = ({} :: Connections?)

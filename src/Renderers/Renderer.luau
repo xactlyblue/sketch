@@ -1,6 +1,6 @@
 --!nonstrict
-local Types = require(script:FindFirstAncestor("Sketch"):WaitForChild("Types"))
-local Utils = require(script:FindFirstAncestor("Sketch"):WaitForChild("Utils"))
+local Types = require(script.Parent.Parent:WaitForChild("Types"))
+local Utils = require(script.Parent.Parent:WaitForChild("Utils"))
 
 --#region Type Definitions
 type Computable<T> = Types.Computable<T>
