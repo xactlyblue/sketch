@@ -91,6 +91,12 @@ function TextRenderer:render(): Instance
 	billboardGui.Adornee = holder
 	billboardGui.AlwaysOnTop = alwaysOnTop
 
+	if self:getSketchbook():getStatus() == "Alive" then
+		billboardGui.Enabled = true
+	else
+		billboardGui.Enabled = false
+	end
+
 	holder.CFrame = CFrame.new(position)
 
 	return holder
