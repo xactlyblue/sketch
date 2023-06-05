@@ -1,7 +1,7 @@
 title = "Sketch"
 gitRepoUrl = "https://github.com/xactlyblue/sketch"
 
-gitSourceBranch = "main"
+gitSourceBranch = "master"
 changelog = true
 classOrder = [ "Sketch", "Sketchbook", "Drawing", "Renderer"]
 
