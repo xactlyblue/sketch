@@ -9,7 +9,7 @@ type Drawing = Sketch.Drawing
 
 local sketchbook: Sketch.Sketchbook = Sketch.createSketchbook()
 
-RunService:BindToRenderStep("Sketch", Enum.RenderPriority.First.Value, function()
+RunService.RenderStepped:Connect(function()
 	Sketch.render(sketchbook)
 end)
 
@@ -25,14 +25,20 @@ local function characterAdded(character: Model)
 	assert(rootPart, "Humanoid must have a RootPart")
 
 	local text: Computable<string> = function()
-		return `({rootPart.Position.X}, {rootPart.Position.Y}, {rootPart.Position.Z})`
+		return `(X: { math.floor(rootPart.Position.X) }, Y: { math.floor(rootPart.Position.Y) }, Z: { math.floor(rootPart.Position.Z) })`
+	end
+
+	local size: Computable<number> = function()
+		return 0.5 
 	end
 
 	local position: Computable<Vector3> = function()
 		return rootPart.Position + Vector3.new(0, 3, 0)
 	end
 
-	local drawing: Drawing = Sketch.drawText(sketchbook, text, position)
+	local drawing: Drawing = Sketch.drawText(sketchbook, text, position, size)
+
+	drawings[character] = drawing
 end
 
 local function characterRemoving(character: Model)
@@ -49,6 +55,7 @@ local function playerAdded(player: Player)
 	end
 
 	player.CharacterAdded:Connect(characterAdded)
+	player.CharacterRemoving:Connect(characterRemoving)
 end
 
 Players.PlayerAdded:Connect(playerAdded)

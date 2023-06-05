@@ -2,6 +2,7 @@
 local Types = require(script:WaitForChild("Types"))
 local Constants = require(script:WaitForChild("Constants"))
 local Renderers	= require(script:WaitForChild("Renderers"))
+local Utils = require(script:WaitForChild("Utils"))
 
 --#region Services
 local RunService = game:GetService("RunService")
@@ -43,11 +44,6 @@ local function createEnum<T>(values: Array<T>): Enum<T>
 	return table.freeze(enum)
 end
 
-local function isComputable(value: unknown, expectedType: string): boolean
-	return typeof(value) == expectedType 
-		or typeof(value) == "function"
-end
-
 local function cleanupConnection(connection: Connection): ()
 	if typeof(connection) == "RBXScriptConnection" then
 		connection:Disconnect()
@@ -84,7 +80,8 @@ do
 				points = {
 					first = Vector3.new(0, 0, 0),
 					second = Vector3.new(0, 0, 0)
-				}
+				},
+				color = Color3.fromRGB(255, 255, 255),
 			}
 		}
 	end
@@ -94,7 +91,8 @@ do
 			circleParams = {
 				radius = 1,
 				filled = false,
-				position = Vector3.new(0, 0, 0)
+				position = Vector3.new(0, 0, 0),
+				color = Color3.fromRGB(255, 255, 255),
 			}
 		}
 	end
@@ -108,7 +106,8 @@ do
 				},
 
 				filled = false,
-				position = Vector3.new(0, 0, 0)
+				position = Vector3.new(0, 0, 0),
+				color = Color3.fromRGB(255, 255, 255),
 			}
 		}
 	end
@@ -123,7 +122,8 @@ do
 				},
 
 				filled = false,
-				position = Vector3.new(0, 0, 0)
+				position = Vector3.new(0, 0, 0),
+				color = Color3.fromRGB(255, 255, 255),
 			}
 		}
 	end
@@ -134,7 +134,9 @@ do
 				text = "Undefined", 
 				position = Vector3.new(0, 0, 0),
 				size = 1,
-				font = Font.fromEnum(Enum.Font.SourceSans),
+				font = Font.fromEnum(Enum.Font.RobotoMono),
+				color = Color3.fromRGB(255, 255, 255),
+				alwaysOnTop = false,
 			}
 		}
 	end
@@ -187,10 +189,8 @@ do
 
 		self.uuid = generateUUID()
 		self.sketchbook = sketchbook
-
 		self.type = type
-		self.color = Color3.new(1, 1, 1)
-		self.transparency = 0
+
 		self.parameters = generateParameters(self)
 		self.renderer = createRenderer(self)
 
@@ -210,33 +210,170 @@ do
 	end
 
 	--[=[
-		Set the drawing's line thickness *(only applicable to line drawings)*.
+		Get the renderer designated for the drawing.
 
-		@param thickness number -- The thickness of the line
-		@error "Cannot set line thickness of non-line drawing" -- The drawing is not a line drawing
+		@private
 		@within Drawing
-		@return Drawing
+		@return Renderer
 	]=]
-	function Drawing:setLineThickness(thickness: number): Drawing
-		assert(self.type == "Line", "Cannot set line thickness of non-line drawing")
-
-		self.parameters.lineParams.thickness = thickness
-
-		return self 
+	function Drawing:getRenderer(): Renderer
+		return self.renderer
 	end
 
 	--[=[
-		Get the drawing's line thickness *(only applicable to line drawings)*.
+		Get the drawing's parameters.
 
-		@error "Cannot set line thickness of non-line drawing" -- The drawing is not a line drawing
+		@private
 		@within Drawing
-		@return number
+		@return DrawingParameters
 	]=]
-	function Drawing:getLineThickness(): number
-		assert(self.type == "Line", "Cannot get line thickness of non-line drawing")
-
-		return self.parameters.lineParams.thickness
+	function Drawing:getParameters(): DrawingParameters
+		return self.parameters
 	end
+
+	--[=[
+		Get the drawing's text.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@return Computable<string>
+	]=]
+	function Drawing:getText(): string
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		local parameter: Computable<string> = self:getParameter("text")
+
+		return Utils.retrieveComputableValue(parameter)
+	end
+
+	--[=[
+		Set the drawing's text.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@param text Computable<string> -- The text to set
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setText(text: Computable<string>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.textParams.text = text
+
+		return self
+	end
+
+	--[=[
+		Get the drawing's text size.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@return Computable<number>
+	]=]
+	function Drawing:getTextSize()
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		return self.parameters.textParams.size
+	end
+
+	--[=[
+		Set the drawing's text size.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@param size Computable<number>
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setTextSize(size: Computable<number>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.textParams.size = size
+
+		return self
+	end
+
+	--[=[
+		Get the drawing's text position.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@return Computable<number>
+	]=]
+	function Drawing:getTextPosition()
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		return self.parameters.textParams.position
+	end
+
+	--[=[
+		Set the drawing's text position.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@param position Computable<Vector3>
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setTextPosition(position: Computable<Vector3>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.textParams.position = position
+
+		return self
+	end
+	--#endregion
 
 	--[=[
 		Cleans up the drawing, removing it from the sketchbook, cleaning up the renderer, and disconnecting all events.
@@ -244,7 +381,7 @@ do
 		@within Drawing
 	]=]
 	function Drawing:cleanup()
-		self:getSketchbook():removeDrawing(self)
+		self:getSketchbook():unregisterDrawing(self)
 		self:getRenderer():cleanup()
 
 		for _, connection in pairs(self._connections) do
@@ -292,8 +429,8 @@ do
 	--[=[
 		Registers a drawing to the sketchbook. This will also register the drawing's renderer and connect all events.
 
+		@private
 		@error "Cannot register drawing that is already registered" -- The drawing is already registered to the sketchbook
-		@error "Cannot register drawing that is already registered to another sketchbook" -- The drawing is already registered to another sketchbook
 		@param drawing Drawing -- The drawing to register
 		@within Sketchbook
 		@return Drawing -- The drawing that was registered
@@ -311,7 +448,6 @@ do
 		end
 
 		assert(not alreadyRegistered, "Cannot register drawing that is already registered")
-		assert(drawing:getSketchbook() == nil, "Cannot register drawing that is already registered to another sketchbook")
 
 		table.insert(self._drawings, drawing)
 
@@ -321,6 +457,7 @@ do
 	--[=[
 		Unregisters a drawing from the sketchbook. This will also unregister the drawing's renderer and disconnect all events.
 
+		@private
 		@param drawing Drawing -- The drawing to unregister
 		@within Sketchbook
 	]=]
@@ -339,8 +476,6 @@ do
 		assert(index ~= 0, "Cannot unregister drawing that is not registered")
 
 		table.remove(self._drawings, index)
-
-		return drawing
 	end
 
 	--[=[
@@ -384,6 +519,10 @@ do
 	function Sketchbook:cleanup()
 		self.status = "Dead"
 		
+		for _, drawing: Drawing in ipairs(self._drawings) do
+			drawing:cleanup()
+		end
+
 		for _, connection: Connection in ipairs(self._connections) do
 			cleanupConnection(connection)
 		end
@@ -465,27 +604,35 @@ end
 
 	@param sketchbook Sketchbook -- The sketchbook to draw the text on
 	@param text Computable<string> -- The text to draw
-	@param position Computable<Vector3> -- The position to draw the text at
-	@param color Computable<Color3> -- The color to draw the text in
+	@param position Computable<Vector3>? -- The position to draw the text at
+	@param size Computable<number>? -- The size of the text
+	@param color Computable<Color3>? -- The color to draw the text in
 	@within Sketch
 	@return Drawing 
 ]=]
-function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Computable<Vector3>?, color: Computable<Color3>?): Drawing
-	assert(isComputable(text, "string"), "Invalid argument #2, expected Computable<string>")
+function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Computable<Vector3>?, size: Computable<number>?, color: Computable<Color3>?): Drawing
+	assert(Utils.isComputable(text, "string"), "Invalid argument #2, expected Computable<string>")
 
 	local drawing = Drawing.new(sketchbook, "Text")
+	drawing:setText(text)
+
+	if position ~= nil then
+		drawing:setTextPosition(position)
+	end
+
+	if size ~= nil then
+		drawing:setTextSize(size)
+	end
+
+	if color ~= nil then
+		drawing:setTextColor(color)
+	end
 
 	sketchbook:registerDrawing(drawing)
 
-	--drawing:setText(text)
-	--drawing:setColor(color or Color3.new(1, 1, 1))
-
-	if position ~= nil then
-	--	drawing:setTextPosition(position)
-	end
-
 	return drawing 
 end
+
 
 --[=[
 	Creates a new line drawing and registers it in the provided sketchbook.
@@ -508,12 +655,15 @@ end
 	Sketch.render(sketchbook)
 	```
 
+	:::warning
+	This feature has not yet been implemented, as the `Line` drawing type is not yet supported.
+	:::
+
 	@param sketchbook Sketchbook -- The sketchbook to draw the text on
 	@param point1 Computable<Vector3> -- The first point to draw the line between
 	@param point2 Computable<Vector3> -- The second point to draw the line between
 	@param color Computable<Color3> -- The color to draw the line in
 	@param thickness Computable<number> -- The thickness of the line
-	@tag unimplemented
 	@unreleased
 	@within Sketch
 ]=]
@@ -538,8 +688,14 @@ end
 	@return nil
 ]=]
 function Sketch.render(sketchbook: Sketchbook): ()
-	for _, drawing: Drawing in pairs(sketchbook:getDrawings()) do
-		local renderer: Renderer = drawing:getRenderer()
+	for _, drawing: Drawing in ipairs(sketchbook:getDrawings()) do
+		local renderer: any = drawing:getRenderer()
+
+		if renderer ~= nil then
+			renderer:render()
+		else
+			warn(`No renderer found for drawing ({ drawing.uuid }, { drawing.type })`)
+		end
 	end
 end
 

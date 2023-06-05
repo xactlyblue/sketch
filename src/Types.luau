@@ -1,4 +1,10 @@
--- @type Computable<T> T | (() -> T)
+--[=[
+	A computable value that can be assigned either a static unchanging value (of T type), or a function that returns a value of T type.
+	When the value is a function, it is called every time the value is needed and is accessed (pretty much exclusively when you call the Sketch.render(...) function on the sketchbook.
+
+	@type Computable<T> T | (() -> T)
+	@within Sketch
+]=]
 export type Computable<T> = T | (() -> T)
 
 -- @type Enum<T> { [string]: T }
@@ -33,38 +39,42 @@ export type Sketchbook = {
 
 export type DrawingParameters = {
 	lineParams: ({ 
-		thickness: number,
+		thickness: Computable<number>,
 		points: { 
-			first: Vector3,
-			second: Vector3
-		}
+			first: Computable<Vector3>,
+			second: Computable<Vector3>
+		},
+		color: Computable<Color3>,
 	})?,
 
 	circleParams: ({
-		radius: number,
-		filled: boolean,
-		position: Vector3,
+		radius: Computable<number>,
+		filled: Computable<boolean>,
+		position: Computable<Vector3>,
+		color: Computable<Color3>,
 	})?,
 
 	rectangleParams: ({
 		size: { 
-			width: number,
-			height: number
+			width: Computable<number>,
+			height: Computable<number>
 		},
 
-		filled: boolean,
-		position: Vector3,
+		filled: Computable<boolean>,
+		position: Computable<Vector3>,
+		color: Computable<Color3>,
 	})?,
 
 	triangleParams: ({
-		points: { 
-			first: Vector3,
-			second: Vector3,
-			third: Vector3
+		points: {
+			first: Computable<Vector3>,
+			second: Computable<Vector3>,
+			third: Computable<Vector3>,
 		},
 
-		filled: boolean,
-		position: Vector3,
+		filled: Computable<boolean>,
+		position: Computable<Vector3>,
+		color: Computable<Color3>,
 	})?,
 
 	textParams: ({
@@ -72,6 +82,8 @@ export type DrawingParameters = {
 		size: Computable<number>,
 		font: Computable<Font?>,
 		position: Computable<Vector3>,
+		color: Computable<Color3>,
+		alwaysOnTop: Computable<boolean>,
 	})?
 }
 export type Drawing = {
@@ -86,6 +98,7 @@ export type Drawing = {
 	getRenderer: (Drawing) -> Renderer,
 	cleanup: (Drawing) -> (),
 }
+
 
 export type Renderer = {
 	new: (Drawing, DrawingType) -> Renderer,

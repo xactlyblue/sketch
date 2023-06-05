@@ -20,13 +20,10 @@ export type DrawingParameters = Types.DrawingParameters
 export type Renderer = Types.Renderer
 --#endregion
 
-local function retrieveComputableValue<T>(computable: Computable<T>): T
-	if typeof(computable) == "function" then
-		return computable()
-	else
-		return computable
-	end
-end
+--#region Services
+local Debris = game:GetService("Debris")
+local RunService = game:GetService("RunService")
+--#endregion
 
 --[=[
 	An internal renderer class responsible for creating visual representations of drawings in the World.
@@ -72,28 +69,6 @@ do
 	end
 
 	--[=[
-		Set the cached instance for the renderer.
-
-		@within Renderer 
-		@error "Abstract method not implemented" -- This method must be implemented by subclasses
-		@param instance Instance? -- The instance to cache
-	]=]
-	function Renderer:setCachedInstance<T>(instance: T?)
-		error("Abstract method not implemented")
-	end
-
-	--[=[
-		Get the cached instance for the renderer.
-
-		@within Renderer 
-		@error "Abstract method not implemented" -- This method must be implemented by subclasses
-		@return Instance? -- The cached instance
-	]=]
-	function Renderer:getCachedInstance<T>(): T?
-		error("Abstract method not implemented")
-	end
-
-	--[=[
 		Clean up the renderer.
 
 		@within Renderer 
@@ -112,50 +87,179 @@ do
 
 	setmetatable(TextRenderer, Renderer)
 
+	local function generateInstancesForText(text): (Part, BillboardGui, TextLabel)
+		local holder: Part = Instance.new("Part")
+		holder.Name = "TextRenderer"
+		holder.Anchored = true
+		holder.CanCollide = false
+		holder.Transparency = 1
+		holder.Size = Vector3.new(0.2, 0.2, 0.2)
+		holder.CFrame = CFrame.new(Vector3.new(0, 0, 0))
+		holder.Parent = game.Workspace
+
+		local billboard: BillboardGui = Instance.new("BillboardGui")
+		billboard.Name = "Render"
+		billboard.Size = UDim2.new(100, 0, 1, 0)
+		billboard.LightInfluence = 0
+		billboard.MaxDistance = 100
+		billboard.Adornee = holder 
+		billboard.Parent = holder
+
+		local textLabel = Instance.new("TextLabel")
+		textLabel.Name = "Text"
+		textLabel.BackgroundTransparency = 1
+		textLabel.Size = UDim2.new(1, 0, 1, 0)
+		textLabel.Text = text
+		textLabel.TextColor3 = Color3.new(1, 1, 1)
+		textLabel.Font = Enum.Font.RobotoMono
+		textLabel.TextTransparency = 0.1
+		textLabel.RichText = true
+		textLabel.TextScaled = true
+		textLabel.TextStrokeTransparency = 1
+		textLabel.BackgroundTransparency = 1
+		textLabel.Parent = billboard
+
+		return holder, billboard, textLabel
+	end
+
 	function TextRenderer.new(drawing: Drawing): Renderer
 		local self = setmetatable( Renderer.new(drawing, "Text"), TextRenderer )
 
 		return self
 	end
 
-	function TextRenderer:render(drawing: Drawing): Instance
-		assert(drawing.type == "Text", "TextRenderer can only render Text drawings")
+	function TextRenderer:render(): Instance
+		assert(self.drawing.type == "Text", "TextRenderer can only render Text drawings")
 
-		local cachedInstance: BillboardGui? = self:getCachedInstance()
+		local params: any = self.drawing.parameters.textParams
 
-		if cachedInstance ~= nil then
+		local text: string = Utils.retrieveComputableValue(params.text, "string")
+		local color: Color3 = Utils.retrieveComputableValue(params.color, "Color3")
+		local font: Font = Utils.retrieveComputableValue(params.font, "Font")
+		local size: number = Utils.retrieveComputableValue(params.size, "number")
+		local position: Vector3 = Utils.retrieveComputableValue(params.position, "Vector3")
+		local alwaysOnTop: boolean = Utils.retrieveComputableValue(params.alwaysOnTop, "boolean")
 
-		else
-			local params: any = drawing.parameters.textParams
+		local holder: Part, billboardGui: BillboardGui, textLabel: TextLabel = self._holder, self._billboardGui, self._textLabel
 
-			local text: string = retrieveComputableValue(params.text)
-			local color: Color3 = retrieveComputableValue(params.color)
-			local font: Font = retrieveComputableValue(params.font)
-			local size: number = retrieveComputableValue(params.size)
+		if holder == nil or billboardGui == nil or textLabel == nil then
+			if holder ~= nil then
+				holder:Destroy()
+			end
 
-			local parent: Instance = workspace.CurrentCamera
-			local billboardGui: BillboardGui = Utils.generateBillboardForText(text, parent)
+			holder, billboardGui, textLabel = generateInstancesForText(text)
 
-			local textLabel: TextLabel = Instance.new("TextLabel")
-			textLabel.Text = text
-			textLabel.Size = UDim2.new(1, 0, 1, 0)
-			textLabel.TextColor3 = color
-			textLabel.FontFace = font
-			textLabel.TextSize = size
-			textLabel.BackgroundTransparency = 1
-			textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-			textLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-			textLabel.Parent = billboardGui
-
-			self:setCachedInstance(billboardGui)
-
-			return billboardGui 
+			self._holder = holder
+			self._billboardGui = billboardGui
+			self._textLabel = textLabel
 		end
 
-		return self:getCachedInstance()
+		textLabel.Text = text
+		textLabel.TextColor3 = color
+		textLabel.FontFace = font
+
+		billboardGui.Size = UDim2.new(100, 0, size, 0)
+		billboardGui.Adornee = holder
+		billboardGui.AlwaysOnTop = alwaysOnTop
+
+		holder.CFrame = CFrame.new(position)
+
+		return holder
 	end
 	
 	function TextRenderer:cleanup()
+		self._holder:Destroy()
+		self._billboardGui:Destroy()
+		self._textLabel:Destroy()
+
+		setmetatable(self, nil)
+	end
+end
+
+local LineRenderer
+do
+	LineRenderer = {}
+	LineRenderer.__index = LineRenderer
+
+	setmetatable(LineRenderer, Renderer)
+
+	function LineRenderer.new(drawing: Drawing): Renderer
+		local self = setmetatable( Renderer.new(drawing, "Line"), LineRenderer )
+
+		return self
+	end
+
+	function LineRenderer:render(drawing: Drawing): Instance
+		error("Not implemented")
+	end
+	
+	function LineRenderer:cleanup()
+		setmetatable(self, nil)
+	end
+end
+
+local CircleRenderer
+do
+	CircleRenderer = {}
+	CircleRenderer.__index = CircleRenderer
+
+	setmetatable(CircleRenderer, Renderer)
+
+	function CircleRenderer.new(drawing: Drawing): Renderer
+		local self = setmetatable( Renderer.new(drawing, "Circle"), CircleRenderer )
+
+		return self
+	end
+
+	function CircleRenderer:render(drawing: Drawing): Instance
+		error("Not implemented")
+	end
+	
+	function CircleRenderer:cleanup()
+		setmetatable(self, nil)
+	end
+end
+
+local RectangleRenderer
+do
+	RectangleRenderer = {}
+	RectangleRenderer.__index = RectangleRenderer
+
+	setmetatable(RectangleRenderer, Renderer)
+
+	function RectangleRenderer.new(drawing: Drawing): Renderer
+		local self = setmetatable( Renderer.new(drawing, "Rectangle"), RectangleRenderer )
+
+		return self
+	end
+
+	function RectangleRenderer:render(drawing: Drawing): Instance
+		error("Not implemented")
+	end
+	
+	function RectangleRenderer:cleanup()
+		setmetatable(self, nil)
+	end
+end
+
+local TriangleRenderer
+do
+	TriangleRenderer = {}
+	TriangleRenderer.__index = TriangleRenderer
+
+	setmetatable(TriangleRenderer, Renderer)
+
+	function TriangleRenderer.new(drawing: Drawing): Renderer
+		local self = setmetatable( Renderer.new(drawing, "Triangle"), TriangleRenderer )
+
+		return self
+	end
+
+	function TriangleRenderer:render(drawing: Drawing): Instance
+		error("Not implemented")
+	end
+	
+	function TriangleRenderer:cleanup()
 		setmetatable(self, nil)
 	end
 end
@@ -164,4 +268,8 @@ end
 return {
 	Renderer = Renderer,
 	TextRenderer = TextRenderer,
+	LineRenderer = LineRenderer,
+	CircleRenderer = CircleRenderer,
+	RectangleRenderer = RectangleRenderer,
+	TriangleRenderer = TriangleRenderer
 }
