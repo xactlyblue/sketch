@@ -12,8 +12,8 @@ needs to be mounted on a [BillboardGui](https://create.roblox.com/docs/reference
 attached to an Adornee. This library aims to solve this problem without being destructive or harmful to your normal workflow.
 
 ## Documentation
-This project is still rather early in development, and though it is completely functional, it does not yet have thorough documentation
-beyond the APIs (and some examples you can find in the ``src/example/`` folder). Hopefully documentation can be sorted out some time soon.
+The project's early documentation can be found [here](https://xactlyblue.github.io/sketch). It's is still rather early in development, and though it is completely functional, 
+it does not yet have thorough documentation beyond the APIs (and some examples you can find in the ``src/example/`` folder). Hopefully proper documentation can be sorted out some time soon.
 
 ## Installation
 
