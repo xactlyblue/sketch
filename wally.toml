@@ -10,9 +10,5 @@ authors = [ "xactlyblue" ]
 exclude = [ "docs", ".moonwave", "build", "pages" ]
 include = [ "src" ]
 
-[dependencies]
-Roact = "roblox/roact@1.4.4"
-Promise = "evaera/promise@2.0.1"
-
 [dev-dependencies]
 TestEZ = "roblox/testez@0.4.1"
