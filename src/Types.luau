@@ -4,7 +4,6 @@
 
 	@class Types
 	@tag definitions
-	@field Sketch
 ]=]
 
 --[=[
