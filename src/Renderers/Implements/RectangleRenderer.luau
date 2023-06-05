@@ -1,7 +1,7 @@
 --!nonstrict
-local Types = require(script.Parent.Parent:WaitForChild("Types"))
-local Utils = require(script.Parent.Parent:WaitForChild("Utils"))
-local Renderer = require(script.Parent:WaitForChild("Renderer"))
+local Types = require(script.Parent.Parent.Parent:WaitForChild("Types"))
+local Utils = require(script.Parent.Parent.Parent:WaitForChild("Utils"))
+local Renderer = require(script.Parent.Parent:WaitForChild("Renderer"))
 
 --#region Type Definitions
 type Computable<T> = Types.Computable<T>
