@@ -90,6 +90,7 @@ function TextRenderer:render(): Instance
 
 	textLabel.Text = text
 	textLabel.TextColor3 = color
+	textLabel.TextSize = size
 	textLabel.FontFace = font
 	textLabel.TextTransparency = transparency
 	textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -97,7 +98,7 @@ function TextRenderer:render(): Instance
 
 	billboardGui.ClipsDescendants = false
 	billboardGui.MaxDistance = maxDistance
-	billboardGui.Size = UDim2.new(100, 0, size, 0)
+	billboardGui.Size = UDim2.new(100, 0, 0, size * 10)
 	billboardGui.Adornee = holder
 	billboardGui.AlwaysOnTop = alwaysOnTop
 
