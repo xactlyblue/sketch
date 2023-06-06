@@ -18,8 +18,8 @@ different types of drawings, helping to keep your code nice and organized.
 local sketchbook = Sketch.createSketchbook() -- Create a new sketchbook to hold our drawings
 local drawing = Sketch.drawText(sketchbook, &quot;Hello, world!&quot;) -- Create a new drawing to draw some text
 ```"><link data-rh="true" rel="canonical" href="https://xactlyblue.github.io/sketch/api/Drawing"><link data-rh="true" rel="alternate" href="https://xactlyblue.github.io/sketch/api/Drawing" hreflang="en"><link data-rh="true" rel="alternate" href="https://xactlyblue.github.io/sketch/api/Drawing" hreflang="x-default"><link rel="stylesheet" href="/sketch/assets/css/styles.19a5646f.css">
-<link rel="preload" href="/sketch/assets/js/runtime~main.ea8d4e1b.js" as="script">
-<link rel="preload" href="/sketch/assets/js/main.30ebc62e.js" as="script">
+<link rel="preload" href="/sketch/assets/js/runtime~main.1aa746f2.js" as="script">
+<link rel="preload" href="/sketch/assets/js/main.509ba2f5.js" as="script">
 </head>
 <body class="navigation-with-keyboard">
 <script>!function(){function e(e){document.documentElement.setAttribute("data-theme",e)}var t=function(){var e=null;try{e=localStorage.getItem("theme")}catch(e){}return e}();null!==t?e(t):window.matchMedia("(prefers-color-scheme: dark)").matches?e("dark"):(window.matchMedia("(prefers-color-scheme: light)").matches,e("light"))}()</script><div id="__docusaurus">
@@ -40,7 +40,7 @@ local drawing = Sketch.drawText(sketchbook, &quot;Hello, world!&quot;) -- Create
 <p>Creates a new drawing.</p>
 </div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="getSketchbook"><code style="text-decoration:none">getSketchbook</code><a href="#getSketchbook" class="hash-link" aria-label="Direct link to getSketchbook" title="Direct link to getSketchbook">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/xactlyblue/sketch/blob/master/src/init.luau#L134"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Drawing<!-- -->:</code><code class="green_DgR4">getSketchbook</code><code>(</code><code>) → </code><code class="blue_P4bS"><a style="text-decoration:underline;color:inherit" href="/sketch/api/Sketchbook">Sketchbook</a></code></div><div>
 <p>Get the sketchbook the drawing is in.</p>
-</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="cleanup"><code style="text-decoration:none">cleanup</code><a href="#cleanup" class="hash-link" aria-label="Direct link to cleanup" title="Direct link to cleanup">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/xactlyblue/sketch/blob/master/src/init.luau#L309"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Drawing<!-- -->:</code><code class="green_DgR4">cleanup</code><code>(</code><code>) → </code><code>(</code><code>)</code></div><div>
+</div><div class="divider_rE5g"></div><h3 class="anchor anchorWithStickyNavbar_LWe7" id="cleanup"><code style="text-decoration:none">cleanup</code><a href="#cleanup" class="hash-link" aria-label="Direct link to cleanup" title="Direct link to cleanup">​</a></h3><div class="repositoryDetailsContainer_BPdw"><a class="sourceButton_sEho" href="https://github.com/xactlyblue/sketch/blob/master/src/init.luau#L451"><div class="sourceButtonText_Vh0m">&lt;/&gt;</div></a></div><div class="memberString_GwaU"><code>Drawing<!-- -->:</code><code class="green_DgR4">cleanup</code><code>(</code><code>) → </code><code>(</code><code>)</code></div><div>
 <p>Cleans up the drawing, removing it from the sketchbook, cleaning up the renderer, and disconnecting all events.</p>
 </div></div></article></div><details><summary>Show raw api</summary><pre style="max-width:100%;white-space:pre-wrap">{
     &quot;functions&quot;: [
@@ -208,7 +208,7 @@ local drawing = Sketch.drawText(sketchbook, &quot;Hello, world!&quot;) -- Create
             &quot;returns&quot;: [
                 {
                     &quot;desc&quot;: &quot;&quot;,
-                    &quot;lua_type&quot;: &quot;Computable&lt;number&gt;&quot;
+                    &quot;lua_type&quot;: &quot;Computable&lt;Vector3&gt;&quot;
                 }
             ],
             &quot;function_type&quot;: &quot;method&quot;,
@@ -242,13 +242,133 @@ local drawing = Sketch.drawText(sketchbook, &quot;Hello, world!&quot;) -- Create
             }
         },
         {
+            &quot;name&quot;: &quot;getTextFont&quot;,
+            &quot;desc&quot;: &quot;Get the drawing&#x27;s text font.\n\n:::warning\nThis function only supports the `Text` drawing type - other drawing types will immediately error.\n:::\n\n:::caution\nIt is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.\nSince this function is designed to be used internally, the behavior (although unlikely) may change in the future.\n:::\n\n\t&quot;,
+            &quot;params&quot;: [],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Computable&lt;Font&gt;&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;private&quot;: true,
+            &quot;source&quot;: {
+                &quot;line&quot;: 319,
+                &quot;path&quot;: &quot;src/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;setTextFont&quot;,
+            &quot;desc&quot;: &quot;Set the drawing&#x27;s text font.\n\n:::warning\nThis function only supports the `Text` drawing type - other drawing types will immediately error.\n:::\n\n:::caution\nIt is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.\nSince this function is designed to be used internally, the behavior (although unlikely) may change in the future.\n:::\n\n\t&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;font&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Computable&lt;Font&gt;&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;The drawing object&quot;,
+                    &quot;lua_type&quot;: &quot;Drawing&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;private&quot;: true,
+            &quot;source&quot;: {
+                &quot;line&quot;: 342,
+                &quot;path&quot;: &quot;src/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;getTextColor&quot;,
+            &quot;desc&quot;: &quot;Get the drawing&#x27;s text color.\n\n:::warning\nThis function only supports the `Text` drawing type - other drawing types will immediately error.\n:::\n\n:::caution\nIt is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.\nSince this function is designed to be used internally, the behavior (although unlikely) may change in the future.\n:::\n\n\t&quot;,
+            &quot;params&quot;: [],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Computable&lt;Color3&gt;&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;private&quot;: true,
+            &quot;source&quot;: {
+                &quot;line&quot;: 366,
+                &quot;path&quot;: &quot;src/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;setTextColor&quot;,
+            &quot;desc&quot;: &quot;Set the drawing&#x27;s text color.\n\n:::warning\nThis function only supports the `Text` drawing type - other drawing types will immediately error.\n:::\n\n:::caution\nIt is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.\nSince this function is designed to be used internally, the behavior (although unlikely) may change in the future.\n:::\n\n\t&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;color&quot;,
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Computable&lt;Color3&gt;&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;The drawing object&quot;,
+                    &quot;lua_type&quot;: &quot;Drawing&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;private&quot;: true,
+            &quot;source&quot;: {
+                &quot;line&quot;: 389,
+                &quot;path&quot;: &quot;src/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;getTextTransparency&quot;,
+            &quot;desc&quot;: &quot;Get the drawing&#x27;s text transparency.\n\n:::warning\nThis function only supports the `Text` drawing type - other drawing types will immediately error.\n:::\n\n:::caution\nIt is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.\nSince this function is designed to be used internally, the behavior (although unlikely) may change in the future.\n:::\n\n\t&quot;,
+            &quot;params&quot;: [],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;&quot;,
+                    &quot;lua_type&quot;: &quot;Computable&lt;number&gt;&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;private&quot;: true,
+            &quot;source&quot;: {
+                &quot;line&quot;: 413,
+                &quot;path&quot;: &quot;src/init.luau&quot;
+            }
+        },
+        {
+            &quot;name&quot;: &quot;setTextTransparency&quot;,
+            &quot;desc&quot;: &quot;Set the drawing&#x27;s text transparency.\n\n:::warning\nThis function only supports the `Text` drawing type - other drawing types will immediately error.\n:::\n\n:::caution\nIt is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.\nSince this function is designed to be used internally, the behavior (although unlikely) may change in the future.\n:::\n\n\t&quot;,
+            &quot;params&quot;: [
+                {
+                    &quot;name&quot;: &quot;transparency&quot;,
+                    &quot;desc&quot;: &quot;The transparency to set&quot;,
+                    &quot;lua_type&quot;: &quot;Computable&lt;number&gt;&quot;
+                }
+            ],
+            &quot;returns&quot;: [
+                {
+                    &quot;desc&quot;: &quot;The drawing object&quot;,
+                    &quot;lua_type&quot;: &quot;Drawing&quot;
+                }
+            ],
+            &quot;function_type&quot;: &quot;method&quot;,
+            &quot;private&quot;: true,
+            &quot;source&quot;: {
+                &quot;line&quot;: 436,
+                &quot;path&quot;: &quot;src/init.luau&quot;
+            }
+        },
+        {
             &quot;name&quot;: &quot;cleanup&quot;,
             &quot;desc&quot;: &quot;Cleans up the drawing, removing it from the sketchbook, cleaning up the renderer, and disconnecting all events.\n\n\t&quot;,
             &quot;params&quot;: [],
             &quot;returns&quot;: [],
             &quot;function_type&quot;: &quot;method&quot;,
             &quot;source&quot;: {
-                &quot;line&quot;: 309,
+                &quot;line&quot;: 451,
                 &quot;path&quot;: &quot;src/init.luau&quot;
             }
         }
@@ -265,7 +385,7 @@ local drawing = Sketch.drawText(sketchbook, &quot;Hello, world!&quot;) -- Create
         &quot;path&quot;: &quot;src/init.luau&quot;
     }
 }</pre></details></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#types" class="table-of-contents__link toc-highlight">Types</a></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a></li><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a><ul><li><a href="#cleanup" class="table-of-contents__link toc-highlight">:cleanup</a></li><li><a href="#getSketchbook" class="table-of-contents__link toc-highlight">:getSketchbook</a></li><li><a href="#new" class="table-of-contents__link toc-highlight">.new</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2023 xactlyblue.<br><b>Built with Moonwave and Docusaurus</b></div></div></div></footer></div>
-<script src="/sketch/assets/js/runtime~main.ea8d4e1b.js"></script>
-<script src="/sketch/assets/js/main.30ebc62e.js"></script>
+<script src="/sketch/assets/js/runtime~main.1aa746f2.js"></script>
+<script src="/sketch/assets/js/main.509ba2f5.js"></script>
 </body>
 </html>
