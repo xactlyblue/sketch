@@ -44,10 +44,13 @@ function Utils.generateDefaultTextParameters(): DrawingParameters
 	local params: TextDrawingParameters = {
 		text = "Undefined", 
 		position = Vector3.new(0, 0, 0),
-		size = 1,
+		size = 18,
 		font = Font.fromEnum(Enum.Font.RobotoMono),
 		color = Color3.fromRGB(255, 255, 255),
 		transparency = 0.1,
+		offsetX = 0,
+		offsetY = 0,
+		maxDistance = 150,
 		alwaysOnTop = false,
 	}
 

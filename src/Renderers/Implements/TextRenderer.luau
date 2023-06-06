@@ -46,7 +46,7 @@ local function generateInstancesForText(text): (Part, BillboardGui, TextLabel)
 	textLabel.Font = Enum.Font.RobotoMono
 	textLabel.TextTransparency = 0.1
 	textLabel.RichText = true
-	textLabel.TextScaled = true
+	textLabel.TextScaled = false
 	textLabel.TextStrokeTransparency = 1
 	textLabel.BackgroundTransparency = 1
 	textLabel.Parent = billboard
@@ -71,6 +71,9 @@ function TextRenderer:render(): Instance
 	local size: number = Utils.retrieveComputableValue(params.size, "number")
 	local position: Vector3 = Utils.retrieveComputableValue(params.position, "Vector3")
 	local transparency: number = Utils.retrieveComputableValue(params.transparency, "number")
+	local offsetX: number = Utils.retrieveComputableValue(params.offsetX, "number")
+	local offsetY: number = Utils.retrieveComputableValue(params.offsetY, "number")
+	local maxDistance: number = Utils.retrieveComputableValue(params.maxDistance, "number")
 	local alwaysOnTop: boolean = Utils.retrieveComputableValue(params.alwaysOnTop, "boolean")
 
 	local holder: Part?, billboardGui: BillboardGui?, textLabel: TextLabel? = self._holder, self._billboardGui, self._textLabel
@@ -89,7 +92,11 @@ function TextRenderer:render(): Instance
 	textLabel.TextColor3 = color
 	textLabel.FontFace = font
 	textLabel.TextTransparency = transparency
+	textLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	textLabel.Position = UDim2.new(0.5, offsetX, 0.5, offsetY)
 
+	billboardGui.ClipsDescendants = false
+	billboardGui.MaxDistance = maxDistance
 	billboardGui.Size = UDim2.new(100, 0, size, 0)
 	billboardGui.Adornee = holder
 	billboardGui.AlwaysOnTop = alwaysOnTop

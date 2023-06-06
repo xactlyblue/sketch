@@ -106,7 +106,10 @@ export type TextDrawingParameters = {
 	font: Computable<Font?>,
 	position: Computable<Vector3>,
 	color: Computable<Color3>,
+	offsetX: Computable<number>,
+	offsetY: Computable<number>,
 	transparency: Computable<number>,
+	maxDistance: Computable<number>,
 	alwaysOnTop: Computable<boolean>,
 }
 export type DrawingParameters = LineDrawingParameters | CircleDrawingParameters | RectangleDrawingParameters | TriangleDrawingParameters | TextDrawingParameters

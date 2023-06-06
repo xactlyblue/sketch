@@ -165,11 +165,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@return Computable<string>
 	]=]
@@ -189,11 +188,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@param text Computable<string> -- The text to set
 		@return Drawing -- The drawing object
@@ -214,11 +212,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@return Computable<number>
 	]=]
@@ -236,12 +233,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
-		@within Drawing
+		@tag parameter
 		@param size Computable<number>
 		@return Drawing -- The drawing object
 	]=]
@@ -261,11 +256,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@return Computable<Vector3>
 	]=]
@@ -283,11 +277,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@param position Computable<Vector3>
 		@return Drawing -- The drawing object
@@ -308,11 +301,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@return Computable<Font>
 	]=]
@@ -330,11 +322,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@param font Computable<Font>
 		@return Drawing -- The drawing object
@@ -355,11 +346,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@return Computable<Color3>
 	]=]
@@ -377,11 +367,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@param color Computable<Color3>
 		@return Drawing -- The drawing object
@@ -402,11 +391,10 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@return Computable<number>
 	]=]
@@ -424,16 +412,15 @@ do
 		:::
 
 		:::caution
-		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
-		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
 		:::
 
-		@private
+		@tag parameter
 		@within Drawing
 		@param transparency Computable<number> -- The transparency to set
 		@return Drawing -- The drawing object
 	]=]
-	function Drawing:setTextTransparency(transparency: Computable<Color3>): Drawing
+	function Drawing:setTextTransparency(transparency: Computable<number>): Drawing
 		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
 		
 		self.parameters.transparency = transparency
@@ -441,6 +428,140 @@ do
 		return self
 	end
 
+	--[=[
+		Get the drawing's text offsetX.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
+		:::
+
+		@tag parameter
+		@within Drawing
+		@return Computable<number>
+	]=]
+	function Drawing:getTextOffsetX()
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		return self.parameters.offsetX
+	end
+
+	--[=[
+		Set the drawing's text offsetX.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
+		:::
+
+		@tag parameter
+		@within Drawing
+		@param offsetX Computable<number> -- The pixel offset (on the X axis) to set
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setTextOffsetX(offsetX: Computable<number>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.offsetX = offsetX
+
+		return self
+	end
+
+	--[=[
+		Get the drawing's text offsetY.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
+		:::
+
+		@tag parameter
+		@within Drawing
+		@return Computable<number>
+	]=]
+	function Drawing:getTextOffsetY()
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		return self.parameters.offsetY
+	end
+
+	--[=[
+		Set the drawing's text offsetY.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
+		:::
+
+		@tag parameter
+		@within Drawing
+		@param offsetY Computable<number> -- The pixel offset (on the Y axis) to set
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setTextOffsetY(offsetY: Computable<number>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.offsetY = offsetY
+
+		return self
+	end
+
+	--[=[
+		Get the drawing's text maximum display distance.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
+		:::
+
+		@tag parameter
+		@within Drawing
+		@return Computable<number>
+	]=]
+	function Drawing:getMaxDistance()
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		return self.parameters.maxDistance
+	end
+
+	--[=[
+		Set the drawing's text offsetY.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It's recommended, though not enforced and though it doesn't make much of a difference, that you use computable functions as opposed directly interfacing with the drawing.
+		:::
+
+		@tag parameter
+		@within Drawing
+		@param maxDistance Computable<number> -- The maximum distance
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setTextMaxDistance(offsetY: Computable<Color3>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.maxDistance = offsetY
+
+		return self
+	end
 	--#endregion
 
 	--[=[
