@@ -69,6 +69,7 @@ function TextRenderer:render(): Instance
 	local font: Font = Utils.retrieveComputableValue(params.font, "Font")
 	local size: number = Utils.retrieveComputableValue(params.size, "number")
 	local position: Vector3 = Utils.retrieveComputableValue(params.position, "Vector3")
+	local transparency: number = Utils.retrieveComputableValue(params.transparency, "number")
 	local alwaysOnTop: boolean = Utils.retrieveComputableValue(params.alwaysOnTop, "boolean")
 
 	local holder: Part?, billboardGui: BillboardGui?, textLabel: TextLabel? = self._holder, self._billboardGui, self._textLabel
@@ -86,6 +87,7 @@ function TextRenderer:render(): Instance
 	textLabel.Text = text
 	textLabel.TextColor3 = color
 	textLabel.FontFace = font
+	textLabel.TextTransparency = transparency
 
 	billboardGui.Size = UDim2.new(100, 0, size, 0)
 	billboardGui.Adornee = holder

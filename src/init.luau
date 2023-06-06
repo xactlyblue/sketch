@@ -267,7 +267,7 @@ do
 
 		@private
 		@within Drawing
-		@return Computable<number>
+		@return Computable<Vector3>
 	]=]
 	function Drawing:getTextPosition()
 		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
@@ -299,6 +299,148 @@ do
 
 		return self
 	end
+
+	--[=[
+		Get the drawing's text font.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@return Computable<Font>
+	]=]
+	function Drawing:getTextFont()
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		return self.parameters.font
+	end
+
+	--[=[
+		Set the drawing's text font.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@param font Computable<Font>
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setTextFont(font: Computable<Font>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.font = font
+
+		return self
+	end
+
+	--[=[
+		Get the drawing's text color.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@return Computable<Color3>
+	]=]
+	function Drawing:getTextColor()
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		return self.parameters.color
+	end
+
+	--[=[
+		Set the drawing's text color.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@param position Computable<Color3>
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setTextColor(color: Computable<Color3>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.color = color
+
+		return self
+	end
+
+	--[=[
+		Get the drawing's text transparency.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@return Computable<number>
+	]=]
+	function Drawing:getTextTransparency()
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		return self.parameters.transparency
+	end
+
+	--[=[
+		Set the drawing's text transparency.
+
+		:::warning
+		This function only supports the `Text` drawing type - other drawing types will immediately error.
+		:::
+
+		:::caution
+		It is **highly recommended** you use computable functions as opposed directly interfacing with the drawing.
+		Since this function is designed to be used internally, the behavior (although unlikely) may change in the future.
+		:::
+
+		@private
+		@within Drawing
+		@param position Computable<number>
+		@return Drawing -- The drawing object
+	]=]
+	function Drawing:setTextTransparency(transparency: Computable<Color3>): Drawing
+		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
+		
+		self.parameters.transparency = transparency
+
+		return self
+	end
+
 	--#endregion
 
 	--[=[
@@ -353,6 +495,23 @@ do
 	end
 
 	--[=[
+		Gets whether the sketchbook has the provided drawing registered within itself.
+
+		@within Sketchbook
+		@param drawing Drawing - The drawing to check for
+		@return boolean
+	]=]
+	function Sketchbook:isDrawingRegistered(drawing: Drawing): boolean
+		for _, entry: Drawing in ipairs(self._drawings) do
+			if entry.uuid == drawing.uuid then
+				return true
+			end
+		end
+
+		return false
+	end
+
+	--[=[
 		Registers a drawing to the sketchbook. This will also register the drawing's renderer and connect all events.
 
 		@private
@@ -363,17 +522,7 @@ do
 	]=]
 	function Sketchbook:registerDrawing(drawing: Drawing): Drawing 
 		assert(drawing, "Cannot register nil drawing")
-
-		local alreadyRegistered: boolean = false
-
-		for _, entry: Drawing in ipairs(self._drawings) do
-			if entry.uuid == drawing.uuid then
-				alreadyRegistered = true
-				break
-			end
-		end
-
-		assert(not alreadyRegistered, "Cannot register drawing that is already registered")
+		assert(not self:isDrawingRegistered(drawing), "Cannot register drawing that is already registered")
 
 		table.insert(self._drawings, drawing)
 
@@ -533,10 +682,19 @@ end
 	@param position Computable<Vector3>? -- The position to draw the text at
 	@param size Computable<number>? -- The size of the text
 	@param color Computable<Color3>? -- The color to draw the text in
+	@param font Computable<Font>? -- The font to draw the text with
+	@param transparency Computable<number>? -- The transparency to draw the text with
 	@within Sketch
 	@return Drawing 
 ]=]
-function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, position: Computable<Vector3>?, size: Computable<number>?, color: Computable<Color3>?): Drawing
+function Sketch.drawText(sketchbook: Sketchbook, 
+						text: Computable<string>, 
+						position: Computable<Vector3>?, 
+						size: Computable<number>?,
+						color: Computable<Color3>?, 
+						font: Computable<Font>?,
+						transparency: Computable<number>?): Drawing
+
 	assert(Utils.isComputable(text, "string"), "Invalid argument #2, expected Computable<string>")
 
 	local drawing = Drawing.new(sketchbook, "Text")
@@ -552,6 +710,14 @@ function Sketch.drawText(sketchbook: Sketchbook, text: Computable<string>, posit
 
 	if color ~= nil then
 		drawing:setTextColor(color)
+	end
+	
+	if font ~= nil then
+		drawing:setTextFont(font)
+	end
+
+	if transparency ~= nil then
+		drawing:setTextTransparency(transparency)
 	end
 
 	sketchbook:registerDrawing(drawing)
@@ -634,7 +800,10 @@ end
 	@return nil
 ]=]
 function Sketch.removeDrawing(sketchbook: Sketchbook, drawing: Drawing): ()
-	sketchbook:unregisterDrawing(drawing)
+	assert(sketchbook ~= nil, "Sketchbook cannot be nil")
+	assert(drawing ~= nil, "Drawing cannot be nil")
+	assert(sketchbook:isDrawingRegistered(drawing), "Drawing is not in sketchbook")
+
 	drawing:cleanup()
 end
 

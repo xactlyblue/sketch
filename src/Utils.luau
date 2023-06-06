@@ -28,7 +28,13 @@ function Utils.retrieveComputableValue<T>(computable: Computable<T>, expectedTyp
 	end
 
 	if typeof(computable) == "function" then
-		return computable()
+		local value: any = computable()
+
+		if expectedType ~= nil then
+			assert(typeof(value) == expectedType, "Expected computable to be a computable value")
+		end
+
+		return value
 	else
 		return computable
 	end
@@ -41,6 +47,7 @@ function Utils.generateDefaultTextParameters(): DrawingParameters
 		size = 1,
 		font = Font.fromEnum(Enum.Font.RobotoMono),
 		color = Color3.fromRGB(255, 255, 255),
+		transparency = 0.1,
 		alwaysOnTop = false,
 	}
 

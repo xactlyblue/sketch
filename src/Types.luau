@@ -55,6 +55,7 @@ export type Sketchbook = {
 
 	registerDrawing: (Sketchbook, Drawing) -> (),
 	unregisterDrawing: (Sketchbook, Drawing) -> (),
+	isDrawingRegistered: (Sketchbook, Drawing) -> boolean,
 
 	getDrawings: (Sketchbook) -> Array<Drawing>,
 }
@@ -101,6 +102,7 @@ export type TextDrawingParameters = {
 	font: Computable<Font?>,
 	position: Computable<Vector3>,
 	color: Computable<Color3>,
+	transparency: Computable<number>,
 	alwaysOnTop: Computable<boolean>,
 }
 export type DrawingParameters = LineDrawingParameters | CircleDrawingParameters | RectangleDrawingParameters | TriangleDrawingParameters | TextDrawingParameters
