@@ -430,7 +430,7 @@ do
 
 		@private
 		@within Drawing
-		@param position Computable<number>
+		@param transparency Computable<number> -- The transparency to set
 		@return Drawing -- The drawing object
 	]=]
 	function Drawing:setTextTransparency(transparency: Computable<Color3>): Drawing
