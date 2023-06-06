@@ -383,7 +383,7 @@ do
 
 		@private
 		@within Drawing
-		@param position Computable<Color3>
+		@param color Computable<Color3>
 		@return Drawing -- The drawing object
 	]=]
 	function Drawing:setTextColor(color: Computable<Color3>): Drawing
