@@ -555,10 +555,10 @@ do
 		@param maxDistance Computable<number> -- The maximum distance
 		@return Drawing -- The drawing object
 	]=]
-	function Drawing:setTextMaxDistance(offsetY: Computable<Color3>): Drawing
+	function Drawing:setTextMaxDistance(maxDistance: Computable<number>): Drawing
 		assert(self.type == "Text", "Cannot set property from drawing type '" .. self.type .. "' -- Only accepts \"Text\" drawing type")
 		
-		self.parameters.maxDistance = offsetY
+		self.parameters.maxDistance = maxDistance
 
 		return self
 	end
