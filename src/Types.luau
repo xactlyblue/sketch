@@ -58,6 +58,10 @@ export type Sketchbook = {
 	isDrawingRegistered: (Sketchbook, Drawing) -> boolean,
 
 	getDrawings: (Sketchbook) -> Array<Drawing>,
+	getStatus: (Sketchbook) -> SketchbookStatus,
+	setHidden: (Sketchbook, boolean) -> (),
+
+	cleanup: (Sketchbook) -> (),
 }
 
 --#region Drawing Parameters

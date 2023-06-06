@@ -11,6 +11,7 @@ type DrawingParameters = Types.DrawingParameters
 type DrawingType = Types.DrawingType
 type Renderer = Types.Renderer
 type Drawing = Types.Drawing
+type Sketchbook = Types.Sketchbook
 --#endregion
 
 local TextRenderer = {}
@@ -93,7 +94,9 @@ function TextRenderer:render(): Instance
 	billboardGui.Adornee = holder
 	billboardGui.AlwaysOnTop = alwaysOnTop
 
-	if self:getSketchbook():getStatus() == "Alive" then
+	local sketchbook: Sketchbook = self.drawing:getSketchbook()
+
+	if sketchbook:getStatus() == "Alive" then
 		billboardGui.Enabled = true
 	else
 		billboardGui.Enabled = false
